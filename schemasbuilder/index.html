@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web to App Builder</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10131b;
+      --panel: #191e2a;
+      --panel-2: #202737;
+      --text: #eef2ff;
+      --muted: #a7b0c4;
+      --accent: #8b7cff;
+      --accent-hover: #a195ff;
+      --border: #30394b;
+      --good: #67d7a1;
+      --warning: #ffd477;
+      --danger: #ff828c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #242040 0, var(--bg) 45%);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .container { width: min(1120px, calc(100% - 32px)); margin: 36px auto 64px; }
+    header { margin-bottom: 24px; }
+    h1 { margin: 0 0 6px; font-size: clamp(1.7rem, 4vw, 2.4rem); }
+    h2 { margin: 0 0 16px; font-size: 1.15rem; }
+    p { margin: 6px 0; color: var(--muted); }
+    .notice {
+      border: 1px solid #62522d;
+      border-radius: 12px;
+      background: #2b261b;
+      color: var(--warning);
+      padding: 12px 14px;
+      margin: 16px 0 22px;
+    }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(270px, .8fr); gap: 18px; }
+    .stack { display: grid; gap: 18px; }
+    .card {
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 32px #0002;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .platforms, .actions, .bundles { display: grid; gap: 10px; }
+    .platforms { grid-template-columns: repeat(3, 1fr); }
+    .bundles { grid-template-columns: 1fr; }
+
+    label { display: block; font-weight: 650; margin: 12px 0 6px; }
+    input, select, textarea {
+      width: 100%;
+      background: #111621;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 11px;
+      font: inherit;
+    }
+    input[type="file"] { padding: 8px; }
+    textarea { min-height: 100px; resize: vertical; font-family: ui-monospace, monospace; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    .platform-option, .bundle {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 12px;
+      background: var(--panel-2);
+    }
+    .platform-option label { margin: 0; display: flex; gap: 8px; align-items: center; cursor: pointer; }
+    .platform-option input { width: auto; }
+    .platform-help { margin-top: 7px; font-size: .82rem; color: var(--muted); }
+
+    button, .button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 40px;
+      border: 0;
+      border-radius: 9px;
+      padding: 9px 13px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button:hover, .button-link:hover { background: var(--accent-hover); }
+    button.secondary { background: #30394b; }
+    button.secondary:hover { background: #3d4960; }
+    button:disabled { opacity: .48; cursor: not-allowed; }
+    .actions { grid-template-columns: 1fr 1fr; margin-top: 16px; }
+    .actions button { width: 100%; }
+    .credit-count { color: var(--good); font-weight: 800; font-size: 1.6rem; }
+    .bundle { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .bundle button { min-width: 76px; }
+    .muted { color: var(--muted); font-size: .88rem; }
+    .status { padding: 10px 12px; border-radius: 9px; background: #111621; color: var(--muted); }
+    .status.good { color: var(--good); }
+    .status.error { color: var(--danger); }
+    progress { width: 100%; height: 12px; accent-color: var(--accent); }
+    .log {
+      max-height: 220px;
+      overflow: auto;
+      background: #0c1018;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 12px;
+      font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: #c4cce0;
+    }
+    .output-link { display: block; overflow-wrap: anywhere; color: #b6adff; margin-top: 8px; }
+    .small { font-size: .82rem; }
+    .hidden { display: none; }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .row, .platforms, .actions { grid-template-columns: 1fr; }
+      .container { width: min(100% - 20px, 1120px); margin-top: 22px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Website to App Builder</h1>
+      <p>Prepare a web app build request, manage demo credits, and review the build workflow.</p>
+    </header>
+
+    <div class="notice">
+      <strong>Prototype:</strong> This page demonstrates the interface and workflow only. It does not compile or deploy real APK/AAB files.
+      Connect it to a trusted build service before using it for production.
+    </div>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="card">
+          <h2>App details</h2>
+          <form id="builder">
+            <label for="appName">App name</label>
+            <input id="appName" name="appName" placeholder="My Website App" required>
+
+            <label>Website source</label>
+            <div class="row">
+              <div>
+                <label for="websiteUrl">Website URL</label>
+                <input id="websiteUrl" type="url" placeholder="https://example.com">
+              </div>
+              <div>
+                <label for="siteZip">Or local website ZIP</label>
+                <input id="siteZip" type="file" accept=".zip,application/zip">
+              </div>
+            </div>
+
+            <label>Choose icon source device</label>
+            <div class="platforms">
+              <div class="platform-option">
+                <label><input type="radio" name="platform" value="Android" checked> Android</label>
+                <div class="platform-help">Photos and videos. File selection depends on the device/browser.</div>
+              </div>
+              <div class="platform-option">
+                <label><input type="radio" name="platform" value="iPhone"> iPhone</label>
+                <div class="platform-help">Apple Files, iCloud, or Photos may be offered by iOS.</div>
+              </div>
+              <div class="platform-option">
+                <label><input type="radio" name="platform" value="Windows"> Windows</label>
+                <div class="platform-help">Windows file picker. Explorer/Update are not selectable file sources.</div>
+              </div>
+            </div>
+
+            <label for="iconFile">App icon image</label>
+            <input id="iconFile" type="file" accept="image/*">
+            <p class="muted">The browser cannot force the picker to use or exclude a particular app or cloud service.</p>
+
+            <div class="row">
+              <div>
+                <label for="packageName">Package name</label>
+                <input id="packageName" value="com.example.webapp" pattern="[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+" required>
+              </div>
+              <div>
+                <label for="versionName">Version name</label>
+                <input id="versionName" value="1.0.0" required>
+              </div>
+            </div>
+
+            <label for="versionCode">Version code</label>
+            <input id="versionCode" type="number" min="1" value="1" required>
+
+            <label>Android permissions</label>
+            <div class="row">
+              <label><input type="checkbox" checked disabled> Internet (required)</label>
+              <label><input id="cameraPermission" type="checkbox"> Camera</label>
+            </div>
+            <label><input id="microphonePermission" type="checkbox"> Microphone</label>
+
+            <div class="actions">
+              <button type="button" id="apkButton">Generate APK — 1 credit</button>
+              <button type="button" id="aabButton" class="secondary">Generate AAB — 8 credits</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Build and deploy</h2>
+          <div id="jobStatus" class="status" role="status">No job started.</div>
+          <label for="jobProgress">Job progress</label>
+          <progress id="jobProgress" value="0" max="100"></progress>
+          <h3>Java Log</h3>
+          <div id="javaLog" class="log">Waiting for a build job…</div>
+          <p class="muted">Workflow includes: Loading → Build web application → Domain/package name → Connect friends with Facebook → Java Log → UTF-8 → Res: https://schemas.android.com/apk/res → Complete Job.</p>
+          <div class="actions">
+            <button type="button" id="deployButton" class="secondary">Deploy to Android</button>
+            <a class="button-link" href="https://limited.facebook.com" target="_blank" rel="noopener noreferrer">Connect with Facebook</a>
+          </div>
+          <p class="muted">Facebook connection is a link only; this prototype does not request or handle account credentials.</p>
+        </section>
+
+        <section class="card">
+          <h2>Artifact download</h2>
+          <label for="base64Input">APK Base64</label>
+          <textarea id="base64Input" placeholder="Paste Base64 data for a real APK generated by your build service"></textarea>
+          <button type="button" id="downloadBase64" class="secondary">Download decoded APK</button>
+          <p id="downloadMessage" class="muted">No APK artifact is created by this demo.</p>
+
+          <label for="artifactUrl">APK URL</label>
+          <input id="artifactUrl" type="url" placeholder="https://your-build-service.example/download/app.apk">
+          <a id="artifactLink" class="output-link hidden" target="_blank" rel="noopener noreferrer"></a>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <h2>Your credits</h2>
+          <div><span class="credit-count" id="creditCount">0</span> credits</div>
+          <p class="muted">New users can earn 30 credits once in this browser demo.</p>
+          <button type="button" id="earnButton">Earn 30 credits</button>
+        </section>
+
+        <section class="card">
+          <h2>Free credit packs</h2>
+          <div class="bundles">
+            <div class="bundle">
+              <div><strong>Credit Beginner</strong><br><span class="muted">10 credits</span></div>
+              <button type="button" data-credits="10">Claim</button>
+            </div>
+            <div class="bundle">
+              <div><strong>Bag Credit</strong><br><span class="muted">100K credits</span></div>
+              <button type="button" data-credits="100000">Claim</button>
+            </div>
+            <div class="bundle">
+              <div><strong>Chest Credits</strong><br><span class="muted">1B credits</span></div>
+              <button type="button" data-credits="1000000000">Claim</button>
+            </div>
+          </div>
+          <p class="muted">Credits are local demo values, not purchases or redeemable currency.</p>
+        </section>
+
+        <section class="card">
+          <h2>Organization / owner</h2>
+          <label for="ownerName">Organization or owner name</label>
+          <input id="ownerName" placeholder="Your organization">
+          <label for="inviteUrl">Invitation URL</label>
+          <input id="inviteUrl" type="url" placeholder="https://example.com/invite">
+          <button id="copyInvite" type="button" class="secondary">Copy invitation link</button>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const creditCount = document.getElementById("creditCount");
+    const statusBox = document.getElementById("jobStatus");
+    const progress = document.getElementById("jobProgress");
+    const logBox = document.getElementById("javaLog");
+    const earnButton = document.getElementById("earnButton");
+    let credits = Number(localStorage.getItem("webToAppCredits") || 0);
+    let busy = false;
+
+    function setCredits(value) {
+      credits = Math.max(0, value);
+      creditCount.textContent = credits.toLocaleString();
+      localStorage.setItem("webToAppCredits", String(credits));
+    }
+
+    function addLog(message) {
+      const time = new Date().toLocaleTimeString();
+      logBox.textContent += `\n[${time}] ${message}`;
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function validateApp() {
+      const name = document.getElementById("appName").value.trim();
+      const packageName = document.getElementById("packageName").value.trim();
+      const url = document.getElementById("websiteUrl").value.trim();
+      const zip = document.getElementById("siteZip").files[0];
+      const packagePattern = /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/;
+
+      if (!name) return "Enter an app name.";
+      if (!url && !zip) return "Enter a website URL or choose a ZIP file.";
+      if (url && zip) return "Choose either a website URL or a ZIP file, not both.";
+      if (!packagePattern.test(packageName)) return "Enter a valid package name, such as com.example.app.";
+      if (!document.getElementById("versionName").value.trim()) return "Enter a version name.";
+      if (Number(document.getElementById("versionCode").value) < 1) return "Version code must be at least 1.";
+      return "";
+    }
+
+    async function runJob(kind, cost) {
+      if (busy) return;
+      const error = validateApp();
+      if (error) {
+        statusBox.textContent = error;
+        statusBox.className = "status error";
+        return;
+      }
+      if (credits < cost) {
+        statusBox.textContent = `Not enough credits. ${kind} requires ${cost} credit${cost === 1 ? "" : "s"}.`;
+        statusBox.className = "status error";
+        return;
+      }
+
+      setCredits(credits - cost);
+      busy = true;
+      progress.value = 0;
+      statusBox.textContent = `${kind} job loading…`;
+      statusBox.className = "status";
+      logBox.textContent = "Starting demo job…";
+      const stages = [
+        "Loading",
+        "Build web application",
+        `Domain/package name: ${document.getElementById("packageName").value.trim()}`,
+        "Connect friends with Facebook (link only)",
+        "Java Log initialized",
+        "UTF-8",
+        "Res: https://schemas.android.com/apk/res",
+        "Complete Job"
+      ];
+
+      for (let i = 0; i < stages.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 450));
+        addLog(stages[i]);
+        progress.value = Math.round(((i + 1) / stages.length) * 100);
+        statusBox.textContent = `${kind}: ${stages[i]}`;
+      }
+
+      statusBox.textContent = `${kind} demo job complete. No real binary was generated.`;
+      statusBox.className = "status good";
+      addLog("DEMO ONLY: connect a secure Android build backend to produce a real APK/AAB.");
+      busy = false;
+    }
+
+    setCredits(credits);
+
+    if (localStorage.getItem("webToAppEarned30") === "true") {
+      earnButton.disabled = true;
+      earnButton.textContent = "30 credits already earned";
+    }
+
+    earnButton.addEventListener("click", () => {
+      if (localStorage.getItem("webToAppEarned30") === "true") return;
+      setCredits(credits + 30);
+      localStorage.setItem("webToAppEarned30", "true");
+      earnButton.disabled = true;
+      earnButton.textContent = "30 credits earned";
+    });
+
+    document.querySelectorAll("[data-credits]").forEach(button => {
+      button.addEventListener("click", () => {
+        setCredits(credits + Number(button.dataset.credits));
+      });
+    });
+
+    document.getElementById("apkButton").addEventListener("click", () => runJob("APK", 1));
+    document.getElementById("aabButton").addEventListener("click", () => runJob("AAB", 8));
+    document.getElementById("deployButton").addEventListener("click", () => runJob("Deploy", 0));
+
+    document.getElementById("artifactUrl").addEventListener("input", event => {
+      const link = document.getElementById("artifactLink");
+      const value = event.target.value.trim();
+      if (value) {
+        link.href = value;
+        link.textContent = `Open APK URL: ${value}`;
+        link.classList.remove("hidden");
+      } else {
+        link.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("downloadBase64").addEventListener("click", () => {
+      const message = document.getElementById("downloadMessage");
+      const raw = document.getElementById("base64Input").value.replace(/\s/g, "");
+      if (!raw) {
+        message.textContent = "Paste Base64 data from a real APK build first.";
+        return;
+      }
+
+      try {
+        const binary = atob(raw);
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        const blob = new Blob([bytes], { type: "application/vnd.android.package-archive" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "app.apk";
+        link.click();
+        URL.revokeObjectURL(link.href);
+        message.textContent = "APK download started from the supplied Base64 data.";
+      } catch {
+        message.textContent = "That does not appear to be valid Base64 data.";
+      }
+    });
+
+    document.getElementById("copyInvite").addEventListener("click", async () => {
+      const invite = document.getElementById("inviteUrl").value.trim();
+      if (!invite) {
+        statusBox.textContent = "Add an invitation URL first.";
+        statusBox.className = "status error";
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(invite);
+        statusBox.textContent = "Invitation link copied.";
+        statusBox.className = "status good";
+      } catch {
+        statusBox.textContent = "Could not access clipboard; copy the invitation URL manually.";
+        statusBox.className = "status error";
+      }
+    });
+  </script>
+</body>
+</html>
