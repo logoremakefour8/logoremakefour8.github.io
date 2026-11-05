@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Editor</title>
+  <style>
+    :root { color-scheme: dark; font: 15px system-ui, sans-serif; background: #10131a; color: #eef1f7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { padding: 18px 24px; background: #191e29; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    h1 { margin: 0; font-size: 21px; }
+    main { max-width: 1200px; margin: auto; padding: 20px; display: grid; gap: 16px; }
+    section { background: #191e29; border: 1px solid #2c3444; border-radius: 12px; padding: 16px; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    button, select, input { font: inherit; color: inherit; background: #252d3b; border: 1px solid #3a4659; border-radius: 7px; padding: 9px 11px; }
+    button { cursor: pointer; }
+    button:hover { background: #344158; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 16px; }
+    canvas { width: 100%; background: #080a0e; border-radius: 8px; aspect-ratio: 16 / 9; }
+    #assets { display: grid; gap: 8px; max-height: 270px; overflow: auto; }
+    .asset { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; border: 1px solid #30394a; border-radius: 7px; }
+    .asset small, .muted { color: #aab4c4; }
+    .asset button { padding: 5px 8px; }
+    .stock-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+    .stock-grid a { color: #94bdff; }
+    .stock-grid input { width: 100%; margin-top: 6px; }
+    #status { color: #aab4c4; min-height: 1.4em; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } header { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Video Editor</h1>
+  <div class="row">
+    <button id="newProject">New project</button>
+    <button id="saveJson">Save JSON</button>
+    <button id="saveXml">Save XML</button>
+    <label>Export
+      <select id="exportFormat">
+        <option>WebM</option><option>MP4</option><option>AVI</option>
+        <option>WMV</option><option>MOV</option>
+      </select>
+    </label>
+    <button id="exportVideo">Export video</button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>Project</h2>
+    <div class="row">
+      <input id="projectName" value="Untitled project" aria-label="Project name">
+      <button data-type="video">Add video</button>
+      <button data-type="image">Add image</button>
+      <button data-type="music">Add music</button>
+      <input id="invitationName" placeholder="Invitation name">
+      <button id="makeInvite">Create invitation URL</button>
+    </div>
+    <p id="inviteOutput" class="muted"></p>
+    <p id="status" role="status"></p>
+  </section>
+
+  <div class="layout">
+    <section>
+      <h2>Preview</h2>
+      <canvas id="preview" width="1280" height="720"></canvas>
+      <div class="row" style="margin-top:10px">
+        <button id="play">Play selected video</button>
+        <button id="pause">Pause</button>
+        <span class="muted">Select an asset in the timeline to preview it.</span>
+      </div>
+      <audio id="audioPreview" controls style="width:100%;margin-top:10px"></audio>
+    </section>
+    <section>
+      <h2>Timeline / media</h2>
+      <div id="assets"><p class="muted">Add local video, image, or music files to begin.</p></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Stock media URL templates</h2>
+    <p class="muted">Paste a direct media URL to add it to the project. Provider API access, licensing, and CORS restrictions may apply.</p>
+    <div class="row">
+      <select id="stockType"><option>image</option><option>video</option><option>music</option></select>
+      <input id="stockUrl" style="flex:1;min-width:220px" placeholder="Direct media URL">
+      <button id="addStock">Add URL</button>
+    </div>
+    <div class="stock-grid" style="margin-top:14px">
+      <div><b>Image sources</b><br>
+        <a href="https://www.opensymbols.org/" target="_blank" rel="noreferrer">OpenSymbols</a> ·
+        <a href="https://arasaac.org/" target="_blank" rel="noreferrer">ARASAAC</a> ·
+        <a href="https://pixabay.com/" target="_blank" rel="noreferrer">Pixabay</a> ·
+        <a href="https://pexels.com/" target="_blank" rel="noreferrer">Pexels</a> ·
+        <a href="https://flickr.com/" target="_blank" rel="noreferrer">Flickr</a> ·
+        <a href="https://giphy.com/" target="_blank" rel="noreferrer">Giphy</a> ·
+        <a href="https://tenor.com/" target="_blank" rel="noreferrer">Tenor</a>
+        <input value="https://www.opensymbols.org/api?v1=openaac&filename=[IMAGE_TITLE_PNG]" readonly>
+        <input value="https://api.arasaac.org/api/pictograms/[NUMBER_ID]?download=false&color=true" readonly>
+        <input value="https://media2.giphy.com/[ENCODING_IMAGE]/giphy.gif" readonly>
+        <input value="https://tenor-ug28xjsxn.googleusercontent.com/[ENCODING_IMAGE_GIF]?api=tenor[ENCODING_GIF_API]&filename=tenor.gif" readonly>
+        <input value="https://cloudflare-stock-untitled-5.wordpress.com.cloudfront.com/wordpress/api/wp-content/uploads/[YEAR]/[MONTH]/[UNTITLED_FILE_NAME_PNG]" readonly>
+      </div>
+      <div><b>Video sources</b><br>
+        <a href="https://pexels.com/videos/" target="_blank" rel="noreferrer">Pexels</a> ·
+        <a href="https://pixabay.com/videos/" target="_blank" rel="noreferrer">Pixabay</a> · GoDaddy Media
+      </div>
+      <div><b>Music sources</b><br>
+        <a href="https://pixabay.com/music/" target="_blank" rel="noreferrer">Pixabay</a> ·
+        <a href="https://www.epidemicsound.com/" target="_blank" rel="noreferrer">Epidemic Sound</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Account connection (demo placeholders)</h2>
+    <p class="muted">Real Facebook/Google sign-in and profile photos require OAuth configuration and a secure application backend. Do not collect passwords in this page.</p>
+    <div class="row">
+      <button data-login="Facebook">Connect Facebook</button>
+      <button data-login="Google">Connect Google</button>
+      <button data-login="Miniclip ID">Connect Miniclip ID</button>
+      <span id="profile" class="muted">Not connected</span>
+    </div>
+  </section>
+</main>
+
+<input id="filePicker" type="file" hidden>
+<script>
+(() => {
+  const assets = [];
+  let selectedId = null;
+  let nextId = 1;
+  const canvas = document.querySelector("#preview");
+  const ctx = canvas.getContext("2d");
+  const video = document.createElement("video");
+  video.muted = true;
+  video.playsInline = true;
+  const audio = document.querySelector("#audioPreview");
+  const picker = document.querySelector("#filePicker");
+  let pendingType = "video";
+  let recorder;
+
+  const status = (message) => document.querySelector("#status").textContent = message;
+  const drawPlaceholder = (text) => {
+    ctx.fillStyle = "#10131a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#eef1f7"; ctx.font = "32px system-ui"; ctx.textAlign = "center";
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  };
+  drawPlaceholder("Add media to your project");
+
+  function addAsset(name, type, url, file = null) {
+    const asset = { id: nextId++, name, type, url, file };
+    assets.push(asset);
+    renderAssets();
+    selectAsset(asset.id);
+  }
+  function renderAssets() {
+    const list = document.querySelector("#assets");
+    list.replaceChildren();
+    if (!assets.length) {
+      list.innerHTML = '<p class="muted">Add local video, image, or music files to begin.</p>';
+      return;
+    }
+    for (const asset of assets) {
+      const row = document.createElement("div");
+      row.className = "asset";
+      const info = document.createElement("span");
+      info.innerHTML = `<b>${escapeHtml(asset.name)}</b><br><small>${asset.type}</small>`;
+      const select = document.createElement("button");
+      select.textContent = "Select"; select.onclick = () => selectAsset(asset.id);
+      const remove = document.createElement("button");
+      remove.textContent = "Remove";
+      remove.onclick = () => {
+        if (asset.file) URL.revokeObjectURL(asset.url);
+        assets.splice(assets.indexOf(asset), 1);
+        if (selectedId === asset.id) { selectedId = null; drawPlaceholder("Select an image or video"); }
+        renderAssets();
+      };
+      row.append(info, select, remove); list.append(row);
+    }
+  }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  }
+  function selectAsset(id) {
+    const asset = assets.find(a => a.id === id);
+    if (!asset) return;
+    selectedId = id;
+    if (asset.type === "video") {
+      video.pause(); video.src = asset.url; video.load();
+      video.onloadeddata = () => drawVideo();
+      video.onerror = () => status("Could not load this video. Check its format or URL.");
+    } else if (asset.type === "image") {
+      const img = new Image();
+      img.onload = () => drawImage(img);
+      img.onerror = () => status("Could not load this image. The URL may block cross-origin access.");
+      img.src = asset.url;
+    } else {
+      audio.src = asset.url; audio.load();
+      drawPlaceholder("Music selected — choose an image or video to preview");
+    }
+  }
+  function drawVideo() {
+    if (!video.videoWidth) return;
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+    const w = video.videoWidth * scale, h = video.videoHeight * scale;
+    ctx.drawImage(video, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  }
+  function drawImage(img) {
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+    const w = img.width * scale, h = img.height * scale;
+    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  }
+  video.addEventListener("timeupdate", drawVideo);
+
+  document.querySelectorAll("[data-type]").forEach(button => button.onclick = () => {
+    pendingType = button.dataset.type;
+    picker.accept = pendingType === "video" ? "video/*" :
+      pendingType === "image" ? "image/*" : "audio/*";
+    picker.click();
+  });
+  picker.onchange = () => {
+    for (const file of picker.files) addAsset(file.name, pendingType, URL.createObjectURL(file), file);
+    picker.value = "";
+  };
+  document.querySelector("#play").onclick = () => {
+    if (selectedId && assets.find(a => a.id === selectedId)?.type === "video") video.play();
+    else status("Select a video asset first.");
+  };
+  document.querySelector("#pause").onclick = () => { video.pause(); audio.pause(); };
+
+  document.querySelector("#newProject").onclick = () => {
+    assets.forEach(a => a.file && URL.revokeObjectURL(a.url));
+    assets.length = 0; selectedId = null; video.pause(); audio.pause();
+    document.querySelector("#projectName").value = "Untitled project";
+    renderAssets(); drawPlaceholder("Add media to your project"); status("New project created.");
+  };
+  function projectData() {
+    return {
+      version: 1,
+      name: document.querySelector("#projectName").value,
+      assets: assets.map(({name, type, url}) => ({name, type, url}))
+    };
+  }
+  function download(name, content, mime) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([content], {type:mime}));
+    a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function safeName() {
+    return (document.querySelector("#projectName").value || "project").replace(/[^\w-]+/g, "_");
+  }
+  document.querySelector("#saveJson").onclick = () =>
+    download(safeName() + ".json", JSON.stringify(projectData(), null, 2), "application/json");
+  document.querySelector("#saveXml").onclick = () => {
+    const p = projectData();
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<project name="${escapeHtml(p.name)}">\n` +
+      p.assets.map(a => `  <asset type="${a.type}" name="${escapeHtml(a.name)}" src="${escapeHtml(a.url)}" />`).join("\n") +
+      "\n</project>";
+    download(safeName() + ".xml", xml, "application/xml");
+  };
+  document.querySelector("#addStock").onclick = () => {
+    const url = document.querySelector("#stockUrl").value.trim();
+    if (!url) return status("Enter a direct media URL first.");
+    addAsset(url.split("/").pop() || "Stock media", document.querySelector("#stockType").value, url);
+    status("URL added. Remote media may be blocked by CORS or provider access rules.");
+  };
+  document.querySelector("#makeInvite").onclick = () => {
+    const value = document.querySelector("#invitationName").value.trim();
+    if (!value) return status("Enter an invitation name.");
+    const link = `https://logoremakefour8.github.io/video-editor?invitation=${encodeURIComponent(value)}`;
+    document.querySelector("#inviteOutput").textContent = link;
+    status("Invitation URL generated. Sharing and access control need server-side implementation.");
+  };
+  document.querySelectorAll("[data-login]").forEach(button => button.onclick = () =>
+    status(`${button.dataset.login} connection is a placeholder; configure its official OAuth flow on a backend.`));
+
+  document.querySelector("#exportVideo").onclick = () => {
+    const format = document.querySelector("#exportFormat").value;
+    if (!["WebM", "MP4"].includes(format)) {
+      return status(`${format} export is not supported by this browser recorder. Use a media converter.`);
+    }
+    if (!window.MediaRecorder) return status("MediaRecorder is not available in this browser.");
+    const mime = format === "MP4" ? "video/mp4" : "video/webm";
+    if (!MediaRecorder.isTypeSupported(mime)) {
+      return status(`${format} recording is not supported by this browser. Try WebM or use a converter.`);
+    }
+    const stream = canvas.captureStream(30);
+    try {
+      recorder = new MediaRecorder(stream, {mimeType:mime});
+    } catch (e) {
+      return status("Could not start recording: " + e.message);
+    }
+    const chunks = [];
+    recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+    recorder.onstop = () => {
+      download(`${safeName()}.${format.toLowerCase()}`, new Blob(chunks, {type:mime}), mime);
+      stream.getTracks().forEach(track => track.stop());
+      status("Video export finished.");
+    };
+    recorder.start();
+    const selected = assets.find(a => a.id === selectedId);
+    if (selected?.type === "video") {
+      video.currentTime = 0; video.play();
+      video.onended = () => recorder.state === "recording" && recorder.stop();
+      status("Recording selected video. Export will finish when playback ends.");
+    } else {
+      drawPlaceholder("Still image export — stop recording when ready");
+      setTimeout(() => recorder.state === "recording" && recorder.stop(), 5000);
+      status("Recording a five-second still-image video.");
+    }
+  };
+})();
+</script>
+</body>
+</html>
