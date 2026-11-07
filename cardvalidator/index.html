@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local demo that checks published test card numbers only.">
+  <title>Credit Card Validator - LogoRemakeFour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fff4f3;
+      --surface: #fff;
+      --text: #272638;
+      --muted: #716f7c;
+      --accent: #d9434f;
+      --accent-hover: #bd3340;
+      --border: #f0d7d5;
+      --grid: rgba(217, 67, 79, .08);
+      --shadow: 0 18px 50px rgba(83, 34, 41, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 18px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 10px 10px;
+      transition: background-color .2s, color .2s;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #101a35;
+      --surface: #192647;
+      --text: #f4f6ff;
+      --muted: #b4bfd9;
+      --accent: #638cff;
+      --accent-hover: #4f76df;
+      --border: #34446b;
+      --grid: rgba(144, 171, 255, .09);
+      --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    }
+
+    .app { width: min(100%, 520px); }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 26px;
+      color: var(--accent);
+    }
+
+    .theme-button, .submit-button {
+      border: 0;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .theme-button {
+      padding: 9px 13px;
+      color: var(--text);
+      background: var(--surface);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+    }
+
+    .panel {
+      padding: clamp(22px, 6vw, 36px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 5vw, 2rem); }
+    .intro, .note { color: var(--muted); line-height: 1.5; }
+    .intro { margin: 0 0 24px; }
+
+    .card-art {
+      display: block;
+      width: min(100%, 340px);
+      margin: 0 auto 24px;
+      filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .16));
+    }
+
+    label { display: block; margin: 0 0 7px; font-weight: 800; }
+
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      background: var(--surface);
+      font: inherit;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      outline: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      border-color: var(--accent);
+    }
+
+    .help, .note { font-size: .88rem; }
+    .help { margin: 7px 0 18px; color: var(--muted); }
+
+    .turnstile-wrap { margin: 18px 0; overflow-x: auto; }
+    .turnstile-label { margin-bottom: 8px; font-size: .9rem; font-weight: 800; }
+
+    .submit-button {
+      width: 100%;
+      padding: 13px 18px;
+      color: #fff;
+      background: var(--accent);
+      transition: background .15s, transform .15s;
+    }
+
+    .submit-button:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .submit-button:focus-visible, .theme-button:focus-visible {
+      outline: 3px solid var(--text);
+      outline-offset: 3px;
+    }
+
+    .result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    }
+
+    .result.show { display: block; }
+    .result h2 { margin: 0 0 10px; font-size: 1.1rem; }
+    .result dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+    .result dt { color: var(--muted); }
+    .result dd { margin: 0; font-weight: 800; text-align: right; }
+    .status { margin: 12px 0 0; font-weight: 800; }
+    .note { margin: 20px 0 0; }
+
+    .logos { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+    .logos svg { width: 42px; height: 27px; }
+
+    @media (max-width: 380px) {
+      .result dl { grid-template-columns: 1fr; }
+      .result dd { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 48 32" role="img" aria-label="Card logo">
+          <rect x="1" y="3" width="46" height="27" rx="6" fill="currentColor"/>
+          <path d="M2 11h44" stroke="white" stroke-width="4" opacity=".8"/>
+          <path d="M8 21h13" stroke="white" stroke-width="2" opacity=".8"/>
+        </svg>
+        <span>LogoRemakeFour</span>
+      </div>
+      <button class="theme-button" id="themeToggle" type="button" aria-pressed="false">
+        Switch to dark
+      </button>
+    </div>
+
+    <section class="panel" aria-labelledby="pageTitle">
+      <h1 id="pageTitle">Credit Card Validator</h1>
+      <p class="intro">A local demo for published test card numbers. Please do not enter real payment details.</p>
+
+      <svg class="card-art" viewBox="0 0 360 218" role="img" aria-label="Illustration of a payment card with number, expiry, CVV and card brand">
+        <defs>
+          <linearGradient id="cardGradient" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#f45b68"/>
+            <stop offset="1" stop-color="#8f284e"/>
+          </linearGradient>
+        </defs>
+        <rect x="5" y="5" width="350" height="208" rx="22" fill="url(#cardGradient)"/>
+        <rect x="5" y="48" width="350" height="34" fill="#26223a" opacity=".88"/>
+        <rect x="28" y="103" width="49" height="36" rx="7" fill="#f3d992"/>
+        <path d="M45 103v36M61 103v36M28 121h49" stroke="#b48e45" stroke-width="2"/>
+        <text x="28" y="165" fill="white" font-size="17" font-family="Nunito, sans-serif" letter-spacing="3">••••  ••••  ••••  ••••</text>
+        <text x="28" y="193" fill="white" font-size="10" font-family="Nunito, sans-serif">MM/YY</text>
+        <text x="254" y="193" fill="white" font-size="10" font-family="Nunito, sans-serif">CVV •••</text>
+        <g transform="translate(274 20)">
+          <circle cx="18" cy="14" r="13" fill="#ed2939"/>
+          <circle cx="34" cy="14" r="13" fill="#f4a51c" fill-opacity=".92"/>
+        </g>
+      </svg>
+
+      <form id="validatorForm" novalidate>
+        <label for="cardNumber">Test card number</label>
+        <input
+          id="cardNumber"
+          name="cardNumber"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="23"
+          placeholder="4242 4242 4242 4242"
+          aria-describedby="cardHelp"
+          required
+        >
+        <p class="help" id="cardHelp">
+          Demo numbers only: Visa 4242 4242 4242 4242 or Mastercard 5555 5555 5555 4444.
+        </p>
+
+        <div class="turnstile-wrap">
+          <div class="turnstile-label">Cloudflare Turnstile (site key required)</div>
+          <!-- Replace with your own site key. Verify the returned token on your server. -->
+          <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"></div>
+        </div>
+
+        <button class="submit-button" type="submit">Validate test number</button>
+      </form>
+
+      <section class="result" id="result" aria-live="polite">
+        <h2>Demo result</h2>
+        <dl>
+          <dt>Brand</dt><dd id="brandValue">—</dd>
+          <dt>BIN / IIN</dt><dd id="binValue">—</dd>
+          <dt>Bank</dt><dd>Not available for test data</dd>
+          <dt>Country</dt><dd>Not available for test data</dd>
+          <dt>Expiry / CVV</dt><dd>Not collected</dd>
+        </dl>
+        <div class="logos" aria-label="Supported demo card brands">
+          <svg viewBox="0 0 60 38" role="img" aria-label="Visa">
+            <rect width="60" height="38" rx="5" fill="#fff"/>
+            <text x="6" y="26" fill="#1a1f71" font-size="21" font-weight="800" font-style="italic" font-family="Arial, sans-serif">VISA</text>
+          </svg>
+          <svg viewBox="0 0 60 38" role="img" aria-label="Mastercard">
+            <rect width="60" height="38" rx="5" fill="#fff"/>
+            <circle cx="25" cy="19" r="12" fill="#eb001b"/>
+            <circle cx="36" cy="19" r="12" fill="#f79e1b" fill-opacity=".95"/>
+          </svg>
+        </div>
+        <p class="status" id="statusMessage"></p>
+      </section>
+
+      <p class="note">
+        This demo checks only its listed test values. It does not collect CVV or expiry, look up issuers,
+        store card data, or submit the number to a server.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const allowedTestCards = {
+      "4242424242424242": "Visa",
+      "5555555555554444": "Mastercard"
+    };
+
+    const form = document.getElementById("validatorForm");
+    const numberInput = document.getElementById("cardNumber");
+    const result = document.getElementById("result");
+
+    document.getElementById("themeToggle").addEventListener("click", (event) => {
+      const isDark = document.body.classList.toggle("dark");
+      event.currentTarget.textContent = isDark ? "Switch to light" : "Switch to dark";
+      event.currentTarget.setAttribute("aria-pressed", String(isDark));
+    });
+
+    numberInput.addEventListener("input", () => {
+      const digits = numberInput.value.replace(/\D/g, "").slice(0, 19);
+      numberInput.value = digits.replace(/(.{4})/g, "$1 ").trim();
+    });
+
+    function passesLuhn(number) {
+      let sum = 0;
+      let doubleDigit = false;
+
+      for (let i = number.length - 1; i >= 0; i--) {
+        let digit = Number(number[i]);
+        if (doubleDigit) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+        doubleDigit = !doubleDigit;
+      }
+      return sum % 10 === 0;
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const digits = numberInput.value.replace(/\D/g, "");
+      const brand = allowedTestCards[digits];
+
+      result.classList.add("show");
+      document.getElementById("brandValue").textContent = brand || "—";
+      document.getElementById("binValue").textContent = brand ? digits.slice(0, 6) : "—";
+
+      const message = document.getElementById("statusMessage");
+      if (brand && passesLuhn(digits)) {
+        message.textContent = "Recognized published test number; checksum passes.";
+        message.style.color = "var(--accent)";
+      } else {
+        message.textContent = "Not one of the supported test numbers. No real card numbers are accepted.";
+        message.style.color = "#c03945";
+      }
+    });
+  </script>
+</body>
+</html>
