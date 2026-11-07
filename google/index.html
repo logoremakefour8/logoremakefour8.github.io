@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Roboto, Arial, sans-serif;
+      color: #202124;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 20px;
+      padding: 18px 24px;
+      font-size: 14px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .sign-in {
+      padding: 10px 22px;
+      border-radius: 22px;
+      background: #0b57d0;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .sign-in:hover {
+      background: #0842a0;
+      text-decoration: none;
+    }
+
+    main {
+      width: min(680px, calc(100% - 32px));
+      margin: auto;
+      padding: 24px 0 100px;
+      text-align: center;
+    }
+
+    .logo {
+      width: min(272px, 72vw);
+      height: auto;
+      margin-bottom: 28px;
+      font-family: "Google Sans", Arial, sans-serif;
+    }
+
+    form { width: 100%; }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+      padding: 0 16px;
+      border: 1px solid #dfe1e5;
+      border-radius: 28px;
+      box-shadow: 0 1px 6px rgb(32 33 36 / 16%);
+    }
+
+    .search-box:hover,
+    .search-box:focus-within {
+      box-shadow: 0 1px 8px rgb(32 33 36 / 24%);
+    }
+
+    .search-box svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      fill: #9aa0a6;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: inherit;
+      font: 16px Roboto, Arial, sans-serif;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 28px 0;
+    }
+
+    button, select {
+      font: 14px Roboto, Arial, sans-serif;
+    }
+
+    .search-button {
+      padding: 10px 18px;
+      border: 1px solid #f8f9fa;
+      border-radius: 4px;
+      background: #f8f9fa;
+      color: #3c4043;
+      cursor: pointer;
+    }
+
+    .search-button:hover {
+      border-color: #dadce0;
+      box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+    }
+
+    .languages {
+      margin-top: 20px;
+      color: #4d5156;
+      font-size: 13px;
+    }
+
+    .languages label { margin-right: 8px; }
+
+    select {
+      padding: 7px 10px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      background: white;
+      color: #3c4043;
+    }
+
+    footer {
+      padding: 16px 24px;
+      background: #f2f2f2;
+      color: #5f6368;
+      font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+      header { padding: 16px; }
+      .buttons { margin: 22px 0; }
+      footer { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="https://myaccount.google.com/">My Account</a>
+    <a class="sign-in" href="https://accounts.google.com/">Sign in</a>
+  </header>
+
+  <main>
+    <svg class="logo" viewBox="0 0 272 92" role="img" aria-label="Google">
+      <text x="0" y="70" font-size="76" font-weight="500" letter-spacing="-5">
+        <tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan>
+      </text>
+    </svg>
+
+    <form id="search-form">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 14 15.5l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-5 0A4.5 4.5 0 1 1 10.5 5a4.5 4.5 0 0 1 0 9z"/>
+        </svg>
+        <input id="query" type="search" aria-label="Search" autocomplete="off">
+      </div>
+
+      <div class="buttons">
+        <button class="search-button" type="submit"><span>Search</span></button>
+        <button class="search-button" type="button" id="lucky">Google Search</button>
+      </div>
+
+      <label for="search-type">Search category:</label>
+      <select id="search-type">
+        <option value="web">Web</option>
+        <option value="images">Images</option>
+        <option value="videos">Videos</option>
+        <option value="news">News</option>
+        <option value="maps">Maps</option>
+      </select>
+    </form>
+
+    <div class="languages">
+      <label for="language">Language:</label>
+      <select id="language">
+        <option value="en-US">English (English) — United States</option>
+        <option value="es-CL">Spanish (Español) — Chile</option>
+        <option value="pt-BR">Portuguese (Português) — Brazil</option>
+        <option value="de-DE">German (Deutsch) — Germany</option>
+      </select>
+    </div>
+  </main>
+
+  <footer>Search powered by Google</footer>
+
+  <script>
+    const form = document.getElementById("search-form");
+    const queryInput = document.getElementById("query");
+    const typeSelect = document.getElementById("search-type");
+    const languageSelect = document.getElementById("language");
+
+    function googleSearchUrl(query, type, language) {
+      const q = encodeURIComponent(query);
+      const hl = encodeURIComponent(language);
+      const newsCode = {
+        "en-US": "English",
+        "es-CL": "Spanish",
+        "pt-BR": "Portuguese",
+        "de-DE": "German"
+      }[language] || "English";
+
+      switch (type) {
+        case "images":
+          return `https://www.google.com/imgres/search?q=${q}&hl=${hl}`;
+        case "videos":
+          return `https://www.google.com/search?q=${q}&hl=${hl}&other_search=videos`;
+        case "news":
+          return `https://www.google.com/news/search?q=${q}&hl=${hl}&code=${encodeURIComponent(newsCode)}`;
+        case "maps":
+          return `https://www.google.com/maps/search?q=${q}&hl=${hl}`;
+        default:
+          return `https://www.google.com/search?q=${q}&hl=${hl}`;
+      }
+    }
+
+    function submitSearch() {
+      const query = queryInput.value.trim();
+      if (!query) {
+        queryInput.focus();
+        return;
+      }
+
+      window.location.assign(
+        googleSearchUrl(query, typeSelect.value, languageSelect.value)
+      );
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitSearch();
+    });
+
+    document.getElementById("lucky").addEventListener("click", submitSearch);
+  </script>
+</body>
+</html>
