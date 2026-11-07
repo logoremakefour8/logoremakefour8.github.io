@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JKAnime Desu — Video Ad</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    #jk_thread > #adangle-pop-iframe-container {
+      height: unset !important;
+      display: unset !important;
+      width: unset !important;
+      position: unset !important;
+    }
+
+    .footer {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: 10;
+      padding: 14px 20px;
+      background: #1f2937;
+      border-top: 1px solid #374151;
+      animation: footer-up 400ms ease-out both;
+    }
+
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer button,
+    .ad-controls button,
+    .exit-dialog button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: white;
+      background: #2563eb;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .6;
+    }
+
+    .ad-overlay[hidden],
+    .exit-dialog[hidden] {
+      display: none;
+    }
+
+    .ad-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgb(0 0 0 / 82%);
+      animation: fade-in 250ms ease-out both;
+    }
+
+    .ad-card {
+      width: min(900px, 100%);
+      overflow: hidden;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      background: #111827;
+      box-shadow: 0 20px 60px rgb(0 0 0 / 45%);
+      animation: rise-in 350ms ease-out both;
+    }
+
+    .ad-header,
+    .ad-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+
+    .ad-header {
+      color: #d1d5db;
+      font-size: .9rem;
+    }
+
+    .video-wrap {
+      position: relative;
+      background: #000;
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      max-height: 65vh;
+      aspect-ratio: 16 / 9;
+      background: #000;
+    }
+
+    .sticker {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      width: 90px;
+      max-height: 90px;
+      object-fit: contain;
+      animation: bob 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .ad-controls {
+      flex-wrap: wrap;
+    }
+
+    .ad-controls .secondary {
+      background: #374151;
+    }
+
+    .skip-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .skip-button svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
+    .exit-dialog {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgb(0 0 0 / 75%);
+    }
+
+    .dialog-card {
+      width: min(420px, 100%);
+      padding: 22px;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      background: #1f2937;
+      animation: fade-in 200ms ease-out both;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .dialog-actions .secondary {
+      background: #4b5563;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes footer-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-9px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="jk_thread">
+    <h1 class="sr-only">JKAnime Desu</h1>
+    <!-- Your page content goes here. -->
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>JKAnime Desu</span>
+
+      <div>
+        <!-- Supplied ad placement; included once. -->
+        <ins
+          class="604c7625"
+          data-key="d7da2793-cc3a-4d10-a59e-1cb9b54c23c7"
+          data-cp-host="3a30daa6132e4053a9e719ba96b7adc3|Astericsgridwithads.github.io"
+          data-cp-domain="Astericsgridwithads.github.io">
+        </ins>
+
+        <button id="open-ad" type="button">Watch video ad</button>
+      </div>
+    </div>
+  </footer>
+
+  <section id="ad-overlay" class="ad-overlay" role="dialog"
+           aria-modal="true" aria-labelledby="ad-title" hidden>
+    <div class="ad-card">
+      <div class="ad-header">
+        <span id="ad-title">Sponsored video</span>
+        <span id="countdown" aria-live="polite">Skip available in 60 seconds</span>
+      </div>
+
+      <div class="video-wrap">
+        <video id="ad-video" autoplay muted playsinline controls
+               poster="YOUR_POSTER_IMAGE_URL">
+          <source src="YOUR_VIDEO_URL.mp4" type="video/mp4">
+          Your browser does not support HTML video.
+        </video>
+        <img class="sticker" src="YOUR_GIPHY_STICKER_URL"
+             alt="" aria-hidden="true">
+      </div>
+
+      <div class="ad-controls">
+        <div>
+          <button id="sound-toggle" class="secondary" type="button"
+                  aria-pressed="false">Sound on</button>
+          <button id="cast-button" class="secondary" type="button">
+            Cast / AirPlay
+          </button>
+        </div>
+
+        <div>
+          <a href="https://YOUR_DOMAIN_NAME" target="_blank"
+             rel="noopener noreferrer">
+            <button class="secondary" type="button">Learn More</button>
+          </a>
+          <button id="skip-ad" class="skip-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 4v16l11-8L5 4zm12 0h2v16h-2V4z"></path>
+            </svg>
+            <span>Skip Ad</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="exit-dialog" class="exit-dialog" role="dialog"
+           aria-modal="true" aria-labelledby="exit-title" hidden>
+    <div class="dialog-card">
+      <h2 id="exit-title">Leave the page?</h2>
+      <p>Would you like to leave JKAnime Desu now?</p>
+      <div class="dialog-actions">
+        <button id="stay-button" class="secondary" type="button">No, stay</button>
+        <button id="leave-button" type="button">Yes, exit</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const adOverlay = document.getElementById("ad-overlay");
+      const exitDialog = document.getElementById("exit-dialog");
+      const video = document.getElementById("ad-video");
+      const countdown = document.getElementById("countdown");
+      const skipButton = document.getElementById("skip-ad");
+      const soundButton = document.getElementById("sound-toggle");
+      const castButton = document.getElementById("cast-button");
+
+      let remaining = 60;
+      let timer;
+
+      function startAd() {
+        remaining = 60;
+        skipButton.disabled = true;
+        countdown.textContent = `Skip available in ${remaining} seconds`;
+        adOverlay.hidden = false;
+
+        video.currentTime = 0;
+        video.play().catch(() => {
+          // Autoplay may be blocked; the viewer can start the video manually.
+        });
+
+        clearInterval(timer);
+        timer = setInterval(() => {
+          remaining -= 1;
+
+          if (remaining <= 0) {
+            clearInterval(timer);
+            countdown.textContent = "You can skip the ad now";
+            skipButton.disabled = false;
+            return;
+          }
+
+          countdown.textContent = `Skip available in ${remaining} seconds`;
+        }, 1000);
+      }
+
+      function closeAd() {
+        clearInterval(timer);
+        video.pause();
+        adOverlay.hidden = true;
+      }
+
+      document.getElementById("open-ad").addEventListener("click", startAd);
+      skipButton.addEventListener("click", closeAd);
+
+      soundButton.addEventListener("click", () => {
+        video.muted = !video.muted;
+        soundButton.textContent = video.muted ? "Sound on" : "Sound off";
+        soundButton.setAttribute("aria-pressed", String(!video.muted));
+      });
+
+      castButton.addEventListener("click", async () => {
+        try {
+          if (typeof video.webkitShowPlaybackTargetPicker === "function") {
+            video.webkitShowPlaybackTargetPicker(); // Safari / AirPlay
+          } else if (video.remote && video.remote.prompt) {
+            await video.remote.prompt(); // Supported Remote Playback browsers
+          } else {
+            alert("Casting is not supported by this browser.");
+          }
+        } catch {
+          // The viewer may dismiss the device picker.
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !adOverlay.hidden) {
+          closeAd();
+        }
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        // Ask before leaving while the ad is open.
+        if (!adOverlay.hidden) {
+          event.preventDefault();
+          event.returnValue = "";
+          exitDialog.hidden = false;
+        }
+      });
+
+      document.getElementById("stay-button").addEventListener("click", () => {
+        exitDialog.hidden = true;
+      });
+
+      document.getElementById("leave-button").addEventListener("click", () => {
+        window.location.href =
+          "https://logoremakefour8.github.io/ad/jkanime/desu/#adjkdesu_exit";
+      });
+    })();
+  </script>
+
+  <!-- Supplied ad-provider script. Only include third-party scripts you trust. -->
+  <script async src="https://cvt-s2.agl003.com/o/s/114ceb8fd4b175d08f041c62576b2f82.js"></script>
+
+  <!-- Supplied Plausible analytics. Remove if you don't want this tracking. -->
+  <script async src="https://kami.jkdesa.com/js/pa-lKuCEqYJhM-34XTHbzbfQ.js?v=1.0"></script>
+  <script>
+    window.plausible = window.plausible || function () {
+      (window.plausible.q = window.plausible.q || []).push(arguments);
+    };
+    window.plausible.init = window.plausible.init || function (options) {
+      window.plausible.o = options || {};
+    };
+    window.plausible.init();
+  </script>
+
+  <!-- Optional supplied third-party script; verify and include only if needed. -->
+  <script data-cfasync="false" async type="text/javascript"
+          src="//db.unboltsecole.com/r5K9akItvISYz1J/128512"></script>
+</body>
+</html>
