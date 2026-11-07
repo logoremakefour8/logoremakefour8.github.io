@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Temp SMS — Chile Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #19233a;
+      --muted: #718096;
+      --line: #e8edf4;
+      --blue: #3867ee;
+      --bg: #f5f7fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Nunito", sans-serif;
+    }
+
+    header {
+      padding: 18px max(5vw, 20px);
+      background: white;
+      border-bottom: 1px solid var(--line);
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    header span { color: var(--blue); }
+
+    main {
+      width: min(100% - 32px, 920px);
+      margin: 36px auto;
+    }
+
+    .number-card, .inbox, .ad-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 8px 26px #1d35570a;
+    }
+
+    .number-card {
+      padding: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    h1 { margin: 5px 0; font-size: clamp(1.5rem, 5vw, 2rem); }
+    .phone { font-size: 1.35rem; font-weight: 800; letter-spacing: .03em; }
+    .country { color: var(--muted); }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      background: var(--blue);
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      padding: 11px 16px;
+    }
+
+    button:hover { background: #2854d5; }
+
+    .notice {
+      margin: 18px 0;
+      padding: 12px 15px;
+      border-radius: 12px;
+      background: #fff8df;
+      color: #745a08;
+      font-size: .92rem;
+    }
+
+    .inbox { overflow: hidden; }
+
+    .inbox-heading {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2 { margin: 0; font-size: 1.15rem; }
+    .demo-tag {
+      padding: 4px 9px;
+      border-radius: 99px;
+      background: #eef2ff;
+      color: #405bd2;
+      font-size: .75rem;
+      font-weight: 800;
+    }
+
+    .messages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .message {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 15px;
+    }
+
+    .message-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .brand { font-weight: 800; }
+    .time { color: var(--muted); font-size: .8rem; }
+    .code {
+      display: inline-block;
+      margin: 5px 0;
+      padding: 4px 9px;
+      border-radius: 7px;
+      background: #f0f4ff;
+      color: #294dcc;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    .message p { margin: 0; color: #536176; font-size: .92rem; }
+    .ad-card { margin-top: 18px; padding: 20px; }
+    .ad-card p { color: var(--muted); margin-bottom: 0; }
+    .ad-brands { font-weight: 800; color: var(--ink); }
+    .small { font-size: .85rem; }
+
+    @media (max-width: 520px) {
+      .number-card { padding: 20px; }
+      .inbox-heading { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>Temp <span>SMS</span> <span class="demo-tag">DEMO</span></header>
+
+  <main>
+    <section class="number-card" aria-labelledby="page-title">
+      <div>
+        <div class="eyebrow">Selected phone number</div>
+        <h1 id="page-title">Chile SMS inbox</h1>
+        <div class="phone" id="phone">+56963396893</div>
+        <div class="country">🇨🇱 Chile · Movistar</div>
+      </div>
+      <button type="button" id="refresh">Generate demo messages</button>
+    </section>
+
+    <div class="notice" role="note">
+      Demo only: these randomly generated codes and messages are fictional.
+      This page does not receive SMS and cannot verify accounts.
+    </div>
+
+    <section class="inbox" aria-labelledby="inbox-title">
+      <div class="inbox-heading">
+        <h2 id="inbox-title">Recent messages</h2>
+        <span class="demo-tag">SAMPLE DATA</span>
+      </div>
+      <div class="messages" id="messages" aria-live="polite"></div>
+    </section>
+
+    <section class="ad-card" aria-labelledby="ad-title">
+      <div class="eyebrow">Sponsored</div>
+      <h2 id="ad-title">JKDesa short-video ad</h2>
+      <p class="ad-brands">PIN-UP · 1XBET · JugaBet · Betsson</p>
+      <p class="small">
+        Video placeholder. The supplied URL,
+        <code>https://cdn.jkdesa.com/script.js</code>, is a JavaScript file,
+        not a video, so it is intentionally not executed. Replace it with a
+        trusted video URL to add a playable ad.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // Fictional local demo data only; no SMS service or external script is used.
+    const brands = [
+      "GitHub", "WOM", "Movistar", "Tapp", "Mercado Pago", "Google",
+      "YouTube", "YouTube Studio", "Microsoft", "iDIYI", "WhatsApp",
+      "Facebook", "TikTok", "Instagram"
+    ];
+
+    function makeCode() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    function renderMessages() {
+      const container = document.getElementById("messages");
+      container.replaceChildren();
+
+      brands.forEach((brand) => {
+        const code = makeCode();
+        const card = document.createElement("article");
+        card.className = "message";
+
+        const top = document.createElement("div");
+        top.className = "message-top";
+
+        const name = document.createElement("span");
+        name.className = "brand";
+        name.textContent = brand;
+
+        const time = document.createElement("span");
+        time.className = "time";
+        time.textContent = "Demo · just now";
+
+        const text = document.createElement("p");
+        text.append("Sample verification code: ");
+        const codeLabel = document.createElement("span");
+        codeLabel.className = "code";
+        codeLabel.textContent = code;
+        text.append(codeLabel);
+        text.append(" — fictional demo message.");
+
+        top.append(name, time);
+        card.append(top, text);
+        container.append(card);
+      });
+    }
+
+    document.getElementById("refresh").addEventListener("click", renderMessages);
+    renderMessages();
+  </script>
+</body>
+</html>
