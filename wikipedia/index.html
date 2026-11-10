@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wikipedia Data Info Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202122;
+      --muted: #54595d;
+      --line: #a2a9b1;
+      --blue: #3366cc;
+      --paper: #fff;
+      --surface: #f8f9fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: Roboto, "Times New Roman", Arial, sans-serif;
+    }
+
+    header {
+      border-bottom: 1px solid #c8ccd1;
+      background: var(--paper);
+    }
+
+    .topbar, main {
+      width: min(1050px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 84px;
+    }
+
+    .wiki-mark { width: 52px; height: 52px; flex: none; }
+
+    .brand h1 {
+      margin: 0;
+      font: 400 1.35rem Georgia, "Times New Roman", serif;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    main { padding: 34px 0 60px; }
+
+    .search-panel {
+      padding: 24px;
+      border: 1px solid #c8ccd1;
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 0 2px 8px #0000000a;
+    }
+
+    .search-panel h2 {
+      margin: 0 0 8px;
+      font: 400 1.7rem Georgia, "Times New Roman", serif;
+    }
+
+    .hint { margin: 0 0 20px; color: var(--muted); }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-wrap { position: relative; flex: 1; }
+
+    input, select, button {
+      font: inherit;
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      border: 1px solid #72777d;
+      border-radius: 6px;
+      color: var(--ink);
+      background: white;
+    }
+
+    input:focus, select:focus, button:focus-visible, a:focus-visible {
+      outline: 3px solid #36c;
+      outline-offset: 2px;
+    }
+
+    select, .search-button {
+      min-height: 48px;
+      padding: 0 16px;
+      border: 1px solid #72777d;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .search-button {
+      border-color: var(--blue);
+      color: white;
+      background: var(--blue);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .suggestions {
+      position: absolute;
+      z-index: 5;
+      top: calc(100% + 4px);
+      right: 0;
+      left: 0;
+      display: none;
+      overflow: hidden;
+      border: 1px solid #a2a9b1;
+      border-radius: 6px;
+      background: white;
+      box-shadow: 0 5px 14px #0002;
+    }
+
+    .suggestions button {
+      display: block;
+      width: 100%;
+      padding: 11px 14px;
+      border: 0;
+      border-bottom: 1px solid #eaecf0;
+      text-align: left;
+      background: white;
+      cursor: pointer;
+    }
+
+    .suggestions button:hover { background: #eaecf0; }
+
+    .search-icon {
+      width: 18px;
+      height: 18px;
+      vertical-align: -4px;
+      margin-right: 5px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .tabs a {
+      padding: 8px 13px;
+      border: 1px solid #a2a9b1;
+      border-radius: 18px;
+      color: #202122;
+      background: white;
+      text-decoration: none;
+    }
+
+    .tabs a:hover, .tabs a[aria-current="page"] {
+      border-color: var(--blue);
+      color: #1a4b9b;
+      background: #eef3ff;
+    }
+
+    #status { min-height: 24px; color: var(--muted); }
+
+    .results {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid #c8ccd1;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .card img {
+      width: 130px;
+      height: 130px;
+      border: 1px solid #eaecf0;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #f8f9fa;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font: 500 1.25rem Georgia, "Times New Roman", serif;
+    }
+
+    .card h3 a { color: #0645ad; }
+
+    .description { margin: 0 0 12px; line-height: 1.5; }
+
+    .metadata {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .metadata span {
+      padding: 4px 7px;
+      border-radius: 4px;
+      background: #f1f3f5;
+    }
+
+    .notice {
+      margin-top: 22px;
+      padding: 12px 14px;
+      border-left: 4px solid #72777d;
+      color: var(--muted);
+      background: #f1f3f5;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 650px) {
+      .search-row { flex-wrap: wrap; }
+      .input-wrap { flex-basis: 100%; }
+      .search-row select { flex: 1; }
+      .card { grid-template-columns: 88px 1fr; gap: 12px; padding: 13px; }
+      .card img { width: 88px; height: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <!-- Embedded SVG watermark-style Wikipedia-inspired mark. -->
+      <svg class="wiki-mark" viewBox="0 0 100 100" role="img" aria-label="Wikipedia-style search logo">
+        <circle cx="50" cy="50" r="44" fill="#fff" stroke="#202122" stroke-width="2"/>
+        <path d="M17 37h15l-3 5 9 23 8-18-4-10h13l-3 5 9 23 10-23-3-5h11l-4 6-16 36h-4L48 55 37 79h-4L18 43z" fill="#202122"/>
+        <text x="50" y="94" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#202122">WIKIPEDIA</text>
+      </svg>
+      <div class="brand">
+        <h1>Wikipedia Data Info Search</h1>
+        <p>Search Wikipedia articles and explore related results</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="search-panel" aria-labelledby="search-heading">
+      <h2 id="search-heading">Find information</h2>
+      <p class="hint">Search Wikipedia in your preferred language. Suggestions appear as you type.</p>
+
+      <form id="search-form" class="search-row">
+        <div class="input-wrap">
+          <input id="query" type="search" autocomplete="off" placeholder="Search Wikipedia…" aria-label="Search query">
+          <div id="suggestions" class="suggestions" role="listbox" aria-label="Search suggestions"></div>
+        </div>
+        <select id="language" aria-label="Wikipedia language">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <button class="search-button" type="submit">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Search
+        </button>
+      </form>
+
+      <nav class="tabs" aria-label="Search services">
+        <a href="#" data-service="wikipedia" aria-current="page">Wikipedia</a>
+        <a href="#" data-service="web">Google Web</a>
+        <a href="#" data-service="images">Google Images</a>
+        <a href="#" data-service="videos">Google Videos</a>
+      </nav>
+    </section>
+
+    <p id="status" role="status" aria-live="polite"></p>
+    <section id="results" class="results" aria-label="Wikipedia results"></section>
+
+    <aside class="notice">
+      Article suggestions and summaries come from the selected Wikipedia language edition.
+      Google tabs open Google search results. Direct Google Custom Search API use requires
+      a Programmable Search Engine and API key; do not put a private API key in a public HTML file.
+    </aside>
+  </main>
+
+  <script>
+    const queryInput = document.getElementById("query");
+    const languageSelect = document.getElementById("language");
+    const suggestionBox = document.getElementById("suggestions");
+    const resultBox = document.getElementById("results");
+    const statusLine = document.getElementById("status");
+    let suggestionTimer;
+
+    function apiBase() {
+      return `https://${languageSelect.value}.wikipedia.org/w/api.php`;
+    }
+
+    async function fetchSuggestions(text) {
+      const url = `${apiBase()}?action=opensearch&search=${encodeURIComponent(text)}&limit=6&namespace=0&format=json&origin=*`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Could not load suggestions.");
+      return response.json();
+    }
+
+    queryInput.addEventListener("input", () => {
+      clearTimeout(suggestionTimer);
+      const text = queryInput.value.trim();
+      if (text.length < 2) {
+        suggestionBox.replaceChildren();
+        suggestionBox.style.display = "none";
+        return;
+      }
+
+      suggestionTimer = setTimeout(async () => {
+        try {
+          const data = await fetchSuggestions(text);
+          suggestionBox.replaceChildren();
+          (data[1] || []).forEach(title => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.role = "option";
+            option.textContent = title;
+            option.addEventListener("click", () => {
+              queryInput.value = title;
+              suggestionBox.style.display = "none";
+              searchWikipedia(title);
+            });
+            suggestionBox.append(option);
+          });
+          suggestionBox.style.display = suggestionBox.childElementCount ? "block" : "none";
+        } catch {
+          suggestionBox.style.display = "none";
+        }
+      }, 250);
+    });
+
+    document.addEventListener("click", event => {
+      if (!suggestionBox.contains(event.target) && event.target !== queryInput) {
+        suggestionBox.style.display = "none";
+      }
+    });
+
+    document.getElementById("search-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const query = queryInput.value.trim();
+      if (query) searchWikipedia(query);
+    });
+
+    async function searchWikipedia(query) {
+      suggestionBox.style.display = "none";
+      statusLine.textContent = "Searching Wikipedia…";
+      resultBox.replaceChildren();
+
+      const params = new URLSearchParams({
+        action: "query",
+        generator: "search",
+        gsrsearch: query,
+        gsrnamespace: "0",
+        gsrlimit: "10",
+        prop: "pageimages|extracts",
+        piprop: "name|thumbnail",
+        pithumbsize: "320",
+        exintro: "1",
+        explaintext: "1",
+        exsentences: "3",
+        format: "json",
+        origin: "*"
+      });
+
+      try {
+        const response = await fetch(`${apiBase()}?${params}`);
+        if (!response.ok) throw new Error("Wikipedia request failed.");
+        const data = await response.json();
+        const pages = Object.values(data.query?.pages || {})
+          .sort((a, b) => (a.index || 0) - (b.index || 0));
+
+        if (!pages.length) {
+          statusLine.textContent = "No Wikipedia articles found. Try another search.";
+          return;
+        }
+
+        statusLine.textContent = `${pages.length} result${pages.length === 1 ? "" : "s"} from ${languageSelect.options[languageSelect.selectedIndex].text} Wikipedia.`;
+        pages.forEach(renderPage);
+      } catch (error) {
+        statusLine.textContent = `${error.message} Check your internet connection and try again.`;
+      }
+    }
+
+    function renderPage(page) {
+      const lang = languageSelect.value;
+      const articleUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(page.title.replaceAll(" ", "_"))}`;
+      const card = document.createElement("article");
+      card.className = "card";
+
+      if (page.thumbnail?.source) {
+        const image = document.createElement("img");
+        image.src = page.thumbnail.source;
+        image.alt = page.title;
+        image.loading = "lazy";
+        card.append(image);
+      } else {
+        const placeholder = document.createElement("div");
+        placeholder.setAttribute("aria-hidden", "true");
+        placeholder.style.cssText = "width:100%;min-height:88px;border-radius:6px;background:#f1f3f5";
+        card.append(placeholder);
+      }
+
+      const details = document.createElement("div");
+      const heading = document.createElement("h3");
+      const link = document.createElement("a");
+      link.href = articleUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = page.title;
+      heading.append(link);
+
+      const description = document.createElement("p");
+      description.className = "description";
+      description.textContent = page.extract || "No short description is available for this article.";
+
+      const metadata = document.createElement("div");
+      metadata.className = "metadata";
+      addTag(metadata, `Wikipedia: ${page.title}`);
+      addTag(metadata, `MediaWiki page: ${page.title}`);
+      addTag(metadata, page.pageimage ? `File: ${page.pageimage}` : "File: no image listed");
+
+      details.append(heading, description, metadata);
+      card.append(details);
+      resultBox.append(card);
+    }
+
+    function addTag(container, text) {
+      const tag = document.createElement("span");
+      tag.textContent = text;
+      container.append(tag);
+    }
+
+    document.querySelectorAll(".tabs a").forEach(tab => {
+      tab.addEventListener("click", event => {
+        event.preventDefault();
+        const service = tab.dataset.service;
+        document.querySelectorAll(".tabs a").forEach(item => item.removeAttribute("aria-current"));
+        tab.setAttribute("aria-current", "page");
+
+        if (service === "wikipedia") {
+          const query = queryInput.value.trim();
+          if (query) searchWikipedia(query);
+          return;
+        }
+
+        const query = queryInput.value.trim();
+        if (!query) {
+          statusLine.textContent = "Enter a search query first.";
+          queryInput.focus();
+          return;
+        }
+
+        const type = service === "images" ? "&tbm=isch" : service === "videos" ? "&tbm=vid" : "";
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}${type}`, "_blank", "noopener,noreferrer");
+      });
+    });
+  </script>
+</body>
+</html>
