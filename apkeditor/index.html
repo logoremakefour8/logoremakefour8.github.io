@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APK Editor</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #10131b;
+      color: #eef1f8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 48px 20px;
+      background:
+        radial-gradient(ellipse at 50% 0, #26345a 0, transparent 48%),
+        #10131b;
+    }
+
+    main { width: min(760px, 100%); margin: 0 auto; }
+
+    header { margin-bottom: 28px; }
+    h1 { margin: 0 0 8px; font-size: clamp(2rem, 6vw, 3rem); }
+    header p, .hint { color: #aab2c5; line-height: 1.5; }
+
+    .card {
+      padding: clamp(20px, 5vw, 32px);
+      border: 1px solid #30384a;
+      border-radius: 18px;
+      background: #191e2a;
+      box-shadow: 0 18px 50px #0005;
+    }
+
+    .file-picker {
+      display: block;
+      padding: 24px;
+      border: 1px dashed #596783;
+      border-radius: 14px;
+      text-align: center;
+      cursor: pointer;
+      background: #202737;
+    }
+
+    .file-picker:hover { border-color: #9cafff; }
+    .file-picker strong { display: block; margin-bottom: 6px; }
+    input[type="file"] { max-width: 100%; }
+
+    #apkFile { margin-top: 14px; }
+    #fileName { overflow-wrap: anywhere; color: #b7c5ff; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #d7dced;
+      font-size: .92rem;
+      font-weight: 600;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid #3b455b;
+      border-radius: 10px;
+      outline: none;
+      color: #eef1f8;
+      background: #111621;
+      font: inherit;
+    }
+
+    input:focus { border-color: #9cafff; }
+
+    .icon-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #iconPreview {
+      width: 64px;
+      height: 64px;
+      border: 1px solid #3b455b;
+      border-radius: 14px;
+      object-fit: cover;
+      background: #111621;
+    }
+
+    #iconFile { max-width: calc(100% - 80px); }
+
+    button {
+      width: 100%;
+      margin-top: 28px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 11px;
+      color: #111522;
+      background: #a9b8ff;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    button:hover { background: #c1ccff; }
+    button:disabled { opacity: .6; cursor: wait; }
+
+    #status {
+      min-height: 24px;
+      margin: 16px 0 0;
+      color: #cbd3e5;
+      line-height: 1.5;
+    }
+
+    .hint { margin: 12px 0 0; font-size: .86rem; }
+
+    @media (max-width: 560px) {
+      body { padding: 28px 14px; }
+      .fields { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>APK Editor</h1>
+      <p>Select an APK, update its app details, and send it to your build service.</p>
+    </header>
+
+    <section class="card" aria-label="APK editor">
+      <label class="file-picker" for="apkFile">
+        <strong>Select APK file</strong>
+        Choose an .apk file from your device
+        <input id="apkFile" type="file" accept=".apk,application/vnd.android.package-archive" required>
+        <span id="fileName" class="hint">No file selected</span>
+      </label>
+
+      <div class="fields">
+        <div class="field full">
+          <label for="appIcon">App icon</label>
+          <div class="icon-row">
+            <img id="iconPreview" alt="Selected app icon preview">
+            <input id="appIcon" type="file" accept="image/png,image/jpeg,image/webp">
+          </div>
+          <p class="hint">Choose a PNG, JPEG, or WebP image. Your build service must apply it to the APK.</p>
+        </div>
+
+        <div class="field">
+          <label for="appName">App name</label>
+          <input id="appName" name="appName" type="text" placeholder="My Android App">
+        </div>
+
+        <div class="field">
+          <label for="versionCode">Version code</label>
+          <input id="versionCode" name="versionCode" type="number" min="1" step="1" placeholder="1">
+        </div>
+
+        <div class="field">
+          <label for="versionName">Version name</label>
+          <input id="versionName" name="versionName" type="text" placeholder="1.0.0">
+        </div>
+
+        <div class="field">
+          <label for="platformVersionCode">Platform build version code</label>
+          <input id="platformVersionCode" name="platformVersionCode" type="number" min="1" step="1" placeholder="35">
+        </div>
+
+        <div class="field">
+          <label for="platformVersionName">Platform build version name</label>
+          <input id="platformVersionName" name="platformVersionName" type="text" placeholder="15">
+        </div>
+      </div>
+
+      <button id="buildButton" type="button">Build &amp; Download APK</button>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="hint">
+        The backend must rebuild and sign the APK. For security, only upload APKs you own
+        or are authorized to modify.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const apkInput = document.getElementById("apkFile");
+    const iconInput = document.getElementById("appIcon");
+    const fileName = document.getElementById("fileName");
+    const iconPreview = document.getElementById("iconPreview");
+    const buildButton = document.getElementById("buildButton");
+    const status = document.getElementById("status");
+    let iconPreviewUrl;
+
+    apkInput.addEventListener("change", () => {
+      const file = apkInput.files[0];
+      fileName.textContent = file ? file.name : "No file selected";
+      status.textContent = "";
+    });
+
+    iconInput.addEventListener("change", () => {
+      const file = iconInput.files[0];
+      if (iconPreviewUrl) URL.revokeObjectURL(iconPreviewUrl);
+
+      if (file) {
+        iconPreviewUrl = URL.createObjectURL(file);
+        iconPreview.src = iconPreviewUrl;
+      } else {
+        iconPreview.removeAttribute("src");
+      }
+    });
+
+    buildButton.addEventListener("click", async () => {
+      const apk = apkInput.files[0];
+
+      if (!apk) {
+        status.textContent = "Select an APK file first.";
+        apkInput.focus();
+        return;
+      }
+
+      if (!apk.name.toLowerCase().endsWith(".apk")) {
+        status.textContent = "Please select a file with the .apk extension.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("apk", apk);
+      if (iconInput.files[0]) formData.append("icon", iconInput.files[0]);
+
+      for (const id of [
+        "appName",
+        "versionCode",
+        "versionName",
+        "platformVersionCode",
+        "platformVersionName"
+      ]) {
+        formData.append(id, document.getElementById(id).value.trim());
+      }
+
+      buildButton.disabled = true;
+      status.textContent = "Building APK…";
+
+      try {
+        const response = await fetch("/api/build-apk", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message || `Build failed (HTTP ${response.status}).`);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "edited-app.apk";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+        status.textContent = "Your APK download has started.";
+      } catch (error) {
+        status.textContent =
+          error.message.includes("Failed to fetch")
+            ? "Could not reach the build service. Configure the /api/build-apk backend endpoint."
+            : error.message;
+      } finally {
+        buildButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
