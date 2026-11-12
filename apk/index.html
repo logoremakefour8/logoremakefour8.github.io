@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-site-verification" content="UCjaU_72hUdS">
+  <title>APK Tools - LogoRemakeFour</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #fff3f3;
+      --panel: #ffffff;
+      --text: #202432;
+      --muted: #656b78;
+      --accent: #d32f2f;
+      --line: #e6baba;
+      --grid-size: 10px;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --page: #101b35;
+      --panel: #182746;
+      --text: #f3f6ff;
+      --muted: #b6c1dc;
+      --accent: #65a7ff;
+      --line: #304568;
+      --grid-size: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background-color: var(--page);
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: var(--grid-size) var(--grid-size);
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+
+    .app { max-width: 1100px; margin: auto; padding: 24px; }
+    header, section, .device { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+    header, section { padding: 20px; margin-bottom: 18px; }
+    h1, h2 { margin-top: 0; }
+    h1 { color: var(--accent); }
+    .toolbar, .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: 18px; }
+    .editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    label { display: block; font-weight: 600; }
+    input[type="text"], input[type="number"], input[type="file"], textarea {
+      width: 100%; margin-top: 5px; padding: 10px;
+      color: var(--text); background: var(--panel);
+      border: 1px solid var(--line); border-radius: 8px;
+    }
+    textarea { min-height: 260px; resize: vertical; font: 13px/1.5 monospace; }
+    .checks { display: grid; gap: 8px; margin: 14px 0; }
+    .checks label { font-weight: 400; }
+    button {
+      cursor: pointer; border: 0; border-radius: 8px; padding: 10px 15px;
+      color: white; background: var(--accent); font-weight: 700;
+    }
+    button.secondary { color: var(--text); background: var(--line); }
+    .muted, #status { color: var(--muted); }
+    .device { padding: 16px; text-align: center; }
+    .android_phone {
+      width: 115px; height: 205px; margin: 10px auto;
+      border: 7px solid #222; border-radius: 22px;
+      background: #FF174850; display: grid; place-items: center;
+      color: white; font-weight: 700;
+    }
+    .android_tv {
+      height: 92px; margin: 10px auto; border: 8px solid #222;
+      border-radius: 8px; background: #FF0000;
+    }
+    .android_tv::after {
+      content: ""; display: block; width: 38px; height: 12px;
+      margin: 84px auto 0; border-bottom: 5px solid #222;
+    }
+    @media (max-width: 700px) {
+      .layout, .editor-grid { grid-template-columns: 1fr; }
+      .app { padding: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <h1>APK Tools - LogoRemakeFour</h1>
+      <p class="muted">Edit manifest metadata and permissions, then export the XML file.</p>
+      <div class="toolbar">
+        <button id="themeToggle" class="secondary" type="button">Toggle Light / Dark Mode</button>
+        <label>
+          Select APK (not modified by this page)
+          <input id="apkFile" type="file" accept=".apk,application/vnd.android.package-archive">
+        </label>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div>
+        <section>
+          <h2>APK Editor</h2>
+          <div class="editor-grid">
+            <label>App name
+              <input id="appName" type="text" placeholder="My Android App">
+            </label>
+            <label>Package name
+              <input id="packageName" type="text" placeholder="com.example.app">
+            </label>
+            <label>Version name
+              <input id="versionName" type="text" placeholder="1.0">
+            </label>
+            <label>Version code
+              <input id="versionCode" type="number" min="1" value="1">
+            </label>
+            <label>Platform build version name
+              <input id="platformVersionName" type="text" placeholder="Optional">
+            </label>
+            <label>Platform build version code
+              <input id="platformVersionCode" type="number" min="1" placeholder="Optional">
+            </label>
+            <label>App icon file
+              <input id="iconFile" type="file" accept="image/*">
+            </label>
+            <label>AndroidManifest.xml
+              <input id="manifestFile" type="file" accept=".xml,text/xml,application/xml">
+            </label>
+          </div>
+
+          <div class="checks">
+            <strong>Permissions</strong>
+            <label><input id="camera" type="checkbox"> Camera</label>
+            <label><input id="microphone" type="checkbox"> Microphone</label>
+            <label><input id="internet" type="checkbox" checked> Internet</label>
+            <label><input id="launcher" type="checkbox" checked> Add launcher activity</label>
+          </div>
+
+          <label>Activity name
+            <input id="activityName" type="text" value=".MainActivity">
+          </label>
+        </section>
+
+        <section>
+          <h2>APK Creator — AndroidManifest.xml</h2>
+          <p class="muted">
+            Uses the Android XML namespace
+            <code>http://schemas.android.com/apk/res/android</code>.
+          </p>
+          <label for="manifestEditor">Manifest XML</label>
+          <textarea id="manifestEditor" spellcheck="false"></textarea>
+          <div class="actions">
+            <button id="createManifest" type="button">Create</button>
+            <button id="saveManifest" type="button">Edit and Save APK</button>
+          </div>
+          <p id="status" role="status">
+            Export creates an AndroidManifest.xml file only, not a rebuilt APK.
+          </p>
+        </section>
+
+        <section>
+          <h2>Google Play App Downloader</h2>
+          <p class="muted">
+            This prototype does not download APK or AAB files from Google Play.
+            Use an authorized Android build or app-distribution workflow.
+          </p>
+          <div class="actions">
+            <button class="storeNotice" type="button">Download APK</button>
+            <button class="storeNotice" type="button">Download AAB</button>
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="device">
+          <h2>Android Phone</h2>
+          <div class="android_phone">App preview</div>
+          <h2>Android TV</h2>
+          <div class="android_tv"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    $(function () {
+      const ANDROID_NS = "http://schemas.android.com/apk/res/android";
+      let manifestDocument = null;
+
+      function setStatus(message) {
+        $("#status").text(message);
+      }
+
+      function makeManifest() {
+        const doc = document.implementation.createDocument("", "manifest", null);
+        const root = doc.documentElement;
+        root.setAttribute("xmlns:android", ANDROID_NS);
+        root.setAttribute("package", $("#packageName").val().trim() || "com.example.app");
+        root.setAttributeNS(ANDROID_NS, "android:versionCode", $("#versionCode").val() || "1");
+        root.setAttributeNS(ANDROID_NS, "android:versionName", $("#versionName").val() || "1.0");
+
+        const platformName = $("#platformVersionName").val().trim();
+        const platformCode = $("#platformVersionCode").val().trim();
+        if (platformName) root.setAttributeNS(ANDROID_NS, "android:platformBuildVersionName", platformName);
+        if (platformCode) root.setAttributeNS(ANDROID_NS, "android:platformBuildVersionCode", platformCode);
+
+        const app = doc.createElement("application");
+        const label = $("#appName").val().trim();
+        if (label) app.setAttributeNS(ANDROID_NS, "android:label", label);
+        doc.documentElement.appendChild(app);
+        return doc;
+      }
+
+      function addPermission(name) {
+        const exists = [...manifestDocument.getElementsByTagName("uses-permission")]
+          .some(node => node.getAttributeNS(ANDROID_NS, "name") === name);
+        if (!exists) {
+          const permission = manifestDocument.createElement("uses-permission");
+          permission.setAttributeNS(ANDROID_NS, "android:name", name);
+          manifestDocument.documentElement.insertBefore(permission, manifestDocument.documentElement.firstChild);
+        }
+      }
+
+      function updateManifest() {
+        if (!manifestDocument) manifestDocument = makeManifest();
+
+        const root = manifestDocument.documentElement;
+        const packageName = $("#packageName").val().trim();
+        if (packageName) root.setAttribute("package", packageName);
+        root.setAttributeNS(ANDROID_NS, "android:versionCode", $("#versionCode").val() || "1");
+        root.setAttributeNS(ANDROID_NS, "android:versionName", $("#versionName").val() || "1.0");
+
+        const app = manifestDocument.getElementsByTagName("application")[0] ||
+          manifestDocument.createElement("application");
+        if (!app.parentNode) root.appendChild(app);
+
+        const appName = $("#appName").val().trim();
+        if (appName) app.setAttributeNS(ANDROID_NS, "android:label", appName);
+
+        if ($("#camera").prop("checked")) addPermission("android.permission.CAMERA");
+        if ($("#microphone").prop("checked")) addPermission("android.permission.RECORD_AUDIO");
+        if ($("#internet").prop("checked")) addPermission("android.permission.INTERNET");
+
+        if ($("#launcher").prop("checked")) {
+          const activity = manifestDocument.createElement("activity");
+          activity.setAttributeNS(
+            ANDROID_NS, "android:name",
+            $("#activityName").val().trim() || ".MainActivity"
+          );
+          activity.setAttributeNS(ANDROID_NS, "android:exported", "true");
+
+          const filter = manifestDocument.createElement("intent-filter");
+          const action = manifestDocument.createElement("action");
+          action.setAttributeNS(ANDROID_NS, "android:name", "android.intent.action.MAIN");
+          const category = manifestDocument.createElement("category");
+          category.setAttributeNS(ANDROID_NS, "android:name", "android.intent.category.LAUNCHER");
+          filter.append(action, category);
+          activity.appendChild(filter);
+          app.appendChild(activity);
+        }
+
+        const xml = new XMLSerializer().serializeToString(manifestDocument);
+        $("#manifestEditor").val('<?xml version="1.0" encoding="utf-8"?>\\n' + xml);
+        return xml;
+      }
+
+      $("#themeToggle").on("click", () => $("body").toggleClass("dark"));
+
+      $("#manifestFile").on("change", function () {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+          const parsed = new DOMParser().parseFromString(reader.result, "application/xml");
+          if (parsed.querySelector("parsererror")) {
+            setStatus("That file could not be parsed as XML.");
+            return;
+          }
+          manifestDocument = parsed;
+          $("#manifestEditor").val(reader.result);
+          setStatus("Manifest loaded. Update the fields and export the edited XML.");
+        };
+        reader.readAsText(file);
+      });
+
+      $("#createManifest").on("click", function () {
+        manifestDocument = null;
+        updateManifest();
+        setStatus("Manifest created. Review the XML, then export it.");
+      });
+
+      $("#saveManifest").on("click", function () {
+        let xml;
+        try {
+          if ($("#manifestEditor").val().trim() && !manifestDocument) {
+            const parsed = new DOMParser().parseFromString($("#manifestEditor").val(), "application/xml");
+            if (parsed.querySelector("parsererror")) throw new Error("Invalid XML");
+            manifestDocument = parsed;
+          }
+          xml = updateManifest();
+        } catch (error) {
+          setStatus("Could not export the manifest. Check that the XML is valid.");
+          return;
+        }
+
+        const blob = new Blob([xml], { type: "application/xml" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "AndroidManifest.xml";
+        link.click();
+        URL.revokeObjectURL(link.href);
+        setStatus("AndroidManifest.xml exported. This did not modify or sign the selected APK.");
+      });
+
+      $(".storeNotice").on("click", function () {
+        setStatus("Google Play downloading is not implemented. This page only edits manifest XML.");
+      });
+
+      $("#apkFile").on("change", function () {
+        if (this.files[0]) {
+          setStatus("APK selected. This browser prototype cannot inspect or modify APK contents.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
