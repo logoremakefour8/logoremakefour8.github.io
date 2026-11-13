@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PPTX Tools</title>
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182230;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #5b48e8;
+      --surface: #fff;
+      --bg: #f5f7fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      padding: 22px clamp(18px, 5vw, 64px);
+      background: #17152d;
+      color: white;
+    }
+    header h1 { margin: 0; font-size: 24px; }
+    header p { margin: 5px 0 0; color: #cbc9dc; }
+    main {
+      max-width: 1180px;
+      margin: 26px auto;
+      padding: 0 18px 40px;
+    }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    button, .button {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 15px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    nav button { background: #e9e7f8; color: #30286d; }
+    nav button.active, .primary { background: var(--brand); color: #fff; }
+    button.secondary { background: #eef2f7; color: var(--ink); }
+    button.danger { background: #fff0f0; color: #a52b2b; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .panel {
+      display: none;
+      padding: clamp(18px, 3vw, 30px);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 26px #14213d0b;
+    }
+    .panel.active { display: block; }
+    h2 { margin: 0 0 8px; font-size: 22px; }
+    .hint, .muted { color: var(--muted); }
+    .notice {
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: #fff8df;
+      border: 1px solid #f4df9b;
+      border-radius: 9px;
+      color: #654d0c;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .field { margin: 14px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: 650; }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font: inherit;
+      background: white;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    input[type="file"] { max-width: 100%; }
+    .viewer {
+      display: block;
+      width: 100%;
+      height: min(70vh, 680px);
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f8fafc;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .conversion {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+    .conversion strong { display: block; margin-bottom: 5px; }
+    .conversion p { min-height: 40px; margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+    .slide-card {
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+    .slide-card.selected { border-color: var(--brand); background: #f8f7ff; }
+    .slide-card button { padding: 5px 9px; }
+    #status { min-height: 24px; margin-top: 12px; color: var(--muted); }
+    @media (min-width: 850px) {
+      .editor-layout { display: grid; grid-template-columns: 280px 1fr; gap: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PPTX Tools</h1>
+    <p>View presentations, create slides, and use available browser-based conversions.</p>
+  </header>
+
+  <main>
+    <nav aria-label="PPTX tools">
+      <button class="active" data-tab="viewer">PPTX Viewer</button>
+      <button data-tab="converter">PPTX Converter</button>
+      <button data-tab="creator">PPTX Creator</button>
+      <button data-tab="editor">PPTX Editor</button>
+    </nav>
+
+    <section class="panel active" id="viewer">
+      <h2>PPTX Viewer</h2>
+      <p class="hint">Select a file for reference, or enter a public PPTX URL to show it in the PowerPoint web viewer.</p>
+      <div class="field">
+        <label for="viewFile">Select PPTX file</label>
+        <input id="viewFile" type="file" accept=".pptx">
+        <div id="viewFileName" class="muted"></div>
+      </div>
+      <div class="field">
+        <label for="publicUrl">Public PPTX URL</label>
+        <input id="publicUrl" type="text" placeholder="https://example.com/presentation.pptx">
+      </div>
+      <button class="primary" id="openViewer">Open in PowerPoint viewer</button>
+      <div class="notice">The Office web viewer must be able to access the PPTX URL. A local file selected above cannot be passed directly to the online viewer; upload it to a host that provides a public URL first.</div>
+      <iframe class="viewer" id="pptFrame" title="PowerPoint presentation viewer"
+        referrerpolicy="no-referrer" allowfullscreen></iframe>
+    </section>
+
+    <section class="panel" id="converter">
+      <h2>PPTX Converter</h2>
+      <p class="hint">Choose a conversion below. Browser-supported conversions work locally; the remaining formats need a server-side conversion service.</p>
+      <div class="field">
+        <label for="convertFiles">Select input file(s)</label>
+        <input id="convertFiles" type="file" multiple
+          accept=".pptx,.ppt,.png,.jpg,.jpeg,.zip,.mp4,.iso,.apk">
+      </div>
+      <div class="grid" id="conversionGrid"></div>
+      <div id="convertStatus" role="status"></div>
+    </section>
+
+    <section class="panel" id="creator">
+      <h2>PPTX Creator</h2>
+      <p class="hint">Create a new presentation, add slides and images, then save it as a PPTX file.</p>
+      <div id="creatorWorkspace"></div>
+    </section>
+
+    <section class="panel" id="editor">
+      <h2>PPTX Editor</h2>
+      <p class="hint">This editor creates and exports a new deck. It does not import and preserve the original contents of an existing PPTX file.</p>
+      <div class="field">
+        <label for="editFile">Select PPTX to view / reference</label>
+        <input id="editFile" type="file" accept=".pptx">
+      </div>
+      <div id="editorFileName" class="muted"></div>
+      <div id="editorWorkspace"></div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const status = (element, message, error = false) => {
+      element.textContent = message;
+      element.style.color = error ? "#a52b2b" : "";
+    };
+    const download = (blob, filename) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    const safeName = (name) => name.replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "_") || "presentation";
+
+    document.querySelectorAll("nav button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        button.classList.add("active");
+        $("#" + button.dataset.tab).classList.add("active");
+      });
+    });
+
+    $("#viewFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      $("#viewFileName").textContent = file ? `Selected: ${file.name}` : "";
+    });
+    $("#openViewer").addEventListener("click", () => {
+      const raw = $("#publicUrl").value.trim();
+      let url;
+      try {
+        url = new URL(raw);
+        if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error();
+      } catch {
+        alert("Enter a valid public HTTP or HTTPS PPTX URL.");
+        return;
+      }
+      $("#pptFrame").src =
+        "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(url.href);
+    });
+
+    const conversions = [
+      ["PPTX → PPT", "Requires a presentation conversion service."],
+      ["PPT → PPTX", "Requires a presentation conversion service."],
+      ["PPTX → MP4", "Requires rendering and video encoding."],
+      ["MP4 → PPTX", "Requires video analysis / slide generation."],
+      ["PNG → PPTX", "Supported locally; each image becomes a slide."],
+      ["PPTX → PNG (ZIP)", "Requires a PPTX rendering service."],
+      ["PPTX → JPG (ZIP)", "Requires a PPTX rendering service."],
+      ["JPG → PPTX (ZIP)", "Supported locally; each image becomes a slide."],
+      ["PPTX → ZIP", "Supported locally; PPTX is already a ZIP container."],
+      ["ZIP → PPTX", "Supported when the ZIP contains a valid PPTX structure."],
+      ["PPTX → ISO (32 GB)", "ISO creation is not a PowerPoint conversion; requires a separate server workflow."],
+      ["ISO → PPTX (25.18 MB)", "An ISO image cannot generically be converted into a presentation."],
+      ["PPTX → APK", "Requires a separately developed Android app and packaging/signing workflow."],
+      ["APK → PPTX", "An Android app package cannot generically be converted into a presentation."]
+    ];
+
+    const grid = $("#conversionGrid");
+    conversions.forEach(([name, description]) => {
+      const card = document.createElement("div");
+      card.className = "conversion";
+      const title = document.createElement("strong");
+      title.textContent = name;
+      const desc = document.createElement("p");
+      desc.textContent = description;
+      const button = document.createElement("button");
+      button.className = name.includes("PNG →") || name.includes("JPG →") ||
+        name.includes("PPTX → ZIP") || name.includes("ZIP → PPTX")
+        ? "primary" : "secondary";
+      button.textContent = "Convert";
+      button.addEventListener("click", () => convert(name));
+      card.append(title, desc, button);
+      grid.append(card);
+    });
+
+    async function convert(kind) {
+      const files = Array.from($("#convertFiles").files);
+      const output = $("#convertStatus");
+      if (!files.length) {
+        status(output, "Select an input file first.", true);
+        return;
+      }
+
+      try {
+        if (kind === "PNG → PPTX" || kind === "JPG → PPTX (ZIP)") {
+          const images = files.filter(f => /\.(png|jpe?g)$/i.test(f.name));
+          if (!images.length) throw new Error("Select at least one PNG or JPG image.");
+          const deck = new pptxgen();
+          deck.layout = "LAYOUT_WIDE";
+          for (const file of images) {
+            const data = await readAsDataURL(file);
+            const slide = deck.addSlide();
+            slide.addImage({ data, x: 0, y: 0, w: 13.333, h: 7.5, sizing: "contain" });
+          }
+          const blob = await deck.write({ outputType: "blob" });
+          download(blob, "images-to-pptx.pptx");
+          status(output, `Created a PPTX with ${images.length} image slide(s).`);
+          return;
+        }
+
+        if (kind === "PPTX → ZIP") {
+          const file = files.find(f => /\.pptx$/i.test(f.name));
+          if (!file) throw new Error("Select a PPTX file.");
+          download(new Blob([await file.arrayBuffer()], { type: "application/zip" }),
+            safeName(file.name) + ".zip");
+          status(output, "Downloaded the PPTX container as a ZIP file.");
+          return;
+        }
+
+        if (kind === "ZIP → PPTX") {
+          const file = files.find(f => /\.zip$/i.test(f.name));
+          if (!file) throw new Error("Select a ZIP file.");
+          const zip = await JSZip.loadAsync(file);
+          if (!zip.file("ppt/presentation.xml") || !zip.file("[Content_Types].xml")) {
+            throw new Error("This ZIP does not contain a recognizable PPTX presentation.");
+          }
+          download(new Blob([await file.arrayBuffer()], {
+            type: "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+          }), safeName(file.name) + ".pptx");
+          status(output, "Validated the presentation structure and downloaded it as PPTX.");
+          return;
+        }
+
+        status(output, `${kind} is not implemented in the browser-only version. Connect a trusted conversion backend to enable it.`);
+      } catch (error) {
+        status(output, error.message || "Conversion failed.", true);
+      }
+    }
+
+    function readAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read " + file.name));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function makeWorkspace(container) {
+      const state = { slides: [{ title: "Welcome", body: "Add your presentation content here." }], selected: 0 };
+      container.innerHTML = `
+        <div class="editor-layout">
+          <div>
+            <div class="row">
+              <button class="primary add-slide">Add Slide</button>
+              <button class="danger remove-slide">Remove Slide</button>
+            </div>
+            <div class="slide-list"></div>
+            <div class="field">
+              <label for="${container.id}-media">Add image to selected slide</label>
+              <input class="media-input" id="${container.id}-media" type="file" accept="image/png,image/jpeg">
+            </div>
+            <button class="secondary save-media">Save Media</button>
+          </div>
+          <div>
+            <div class="field">
+              <label>Slide title</label>
+              <input class="slide-title" type="text">
+            </div>
+            <div class="field">
+              <label>Slide text</label>
+              <textarea class="slide-body"></textarea>
+            </div>
+            <div class="row">
+              <button class="secondary save-slide">Save Slide</button>
+              <button class="primary save-deck">Save PPTX</button>
+            </div>
+            <div class="muted workspace-status" role="status"></div>
+          </div>
+        </div>`;
+
+      const list = container.querySelector(".slide-list");
+      const titleInput = container.querySelector(".slide-title");
+      const bodyInput = container.querySelector(".slide-body");
+      const message = container.querySelector(".workspace-status");
+      let mediaFile = null;
+
+      function render() {
+        list.replaceChildren();
+        state.slides.forEach((slide, index) => {
+          const card = document.createElement("div");
+          card.className = "slide-card" + (index === state.selected ? " selected" : "");
+          const label = document.createElement("button");
+          label.className = "secondary";
+          label.textContent = `${index + 1}. ${slide.title || "Untitled slide"}`;
+          label.addEventListener("click", () => {
+            saveCurrent();
+            state.selected = index;
+            render();
+          });
+          card.append(label);
+          if (slide.mediaName) {
+            const mediaLabel = document.createElement("div");
+            mediaLabel.className = "muted";
+            mediaLabel.textContent = `Image: ${slide.mediaName}`;
+            card.append(mediaLabel);
+          }
+          list.append(card);
+        });
+        titleInput.value = state.slides[state.selected].title || "";
+        bodyInput.value = state.slides[state.selected].body || "";
+      }
+
+      function saveCurrent() {
+        state.slides[state.selected].title = titleInput.value;
+        state.slides[state.selected].body = bodyInput.value;
+      }
+
+      container.querySelector(".save-slide").addEventListener("click", () => {
+        saveCurrent();
+        render();
+        status(message, "Slide saved.");
+      });
+      container.querySelector(".add-slide").addEventListener("click", () => {
+        saveCurrent();
+        state.slides.push({ title: "New Slide", body: "" });
+        state.selected = state.slides.length - 1;
+        mediaFile = null;
+        render();
+      });
+      container.querySelector(".remove-slide").addEventListener("click", () => {
+        if (state.slides.length === 1) {
+          status(message, "A presentation must contain at least one slide.", true);
+          return;
+        }
+        state.slides.splice(state.selected, 1);
+        state.selected = Math.max(0, state.selected - 1);
+        mediaFile = null;
+        render();
+      });
+      container.querySelector(".media-input").addEventListener("change", async (event) => {
+        mediaFile = event.target.files[0] || null;
+        if (!mediaFile) return;
+        state.slides[state.selected].media = await readAsDataURL(mediaFile);
+        state.slides[state.selected].mediaName = mediaFile.name;
+        render();
+        status(message, "Image added to the selected slide.");
+      });
+      container.querySelector(".save-media").addEventListener("click", () => {
+        if (!mediaFile) {
+          status(message, "Choose an image first. Save Media downloads the selected image.", true);
+          return;
+        }
+        download(mediaFile, mediaFile.name);
+      });
+      container.querySelector(".save-deck").addEventListener("click", async () => {
+        try {
+          saveCurrent();
+          const deck = new pptxgen();
+          deck.layout = "LAYOUT_WIDE";
+          state.slides.forEach((item) => {
+            const slide = deck.addSlide();
+            slide.background = { color: "FFFFFF" };
+            slide.addText(item.title || "Untitled slide", {
+              x: 0.7, y: 0.5, w: 11.9, h: 0.7,
+              fontFace: "Aptos Display", fontSize: 28, bold: true, color: "182230"
+            });
+            if (item.body) {
+              slide.addText(item.body, {
+                x: 0.8, y: 1.55, w: 11.6, h: 4.8,
+                fontFace: "Aptos", fontSize: 18, color: "334155",
+                breakLine: false, valign: "top", fit: "shrink"
+              });
+            }
+            if (item.media) {
+              slide.addImage({ data: item.media, x: 7.3, y: 2, w: 5.2, h: 4.6, sizing: "contain" });
+            }
+          });
+          const blob = await deck.write({ outputType: "blob" });
+          download(blob, "logoremakefour.pptx");
+          status(message, "PPTX presentation downloaded.");
+        } catch (error) {
+          status(message, error.message || "Could not create the PPTX.", true);
+        }
+      });
+      render();
+    }
+
+    makeWorkspace($("#creatorWorkspace"));
+    makeWorkspace($("#editorWorkspace"));
+
+    $("#editFile").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      $("#editorFileName").textContent = file
+        ? `Selected for reference: ${file.name}. Existing slides are not imported into the editor.`
+        : "";
+    });
+  </script>
+</body>
+</html>
