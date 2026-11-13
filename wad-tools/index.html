@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WAD Tools - LogoRemakeFour</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10131d;
+      --panel: #191e2b;
+      --panel-light: #22293a;
+      --text: #f3f5fa;
+      --muted: #aab3c5;
+      --accent: #73a7ff;
+      --border: #343d51;
+      --success: #8de0b0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #1d2b48 0, var(--bg) 50%);
+      color: var(--text);
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+
+    .shell { max-width: 1050px; margin: 0 auto; padding: 38px 20px 60px; }
+
+    header { margin-bottom: 26px; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); }
+    header p, .hint { color: var(--muted); }
+    header p { margin: 8px 0 0; }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab, button {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel-light);
+      color: var(--text);
+      padding: 10px 15px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .tab[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #101827;
+      font-weight: 700;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #101827;
+      font-weight: 700;
+    }
+
+    button:hover, .tab:hover { filter: brightness(1.12); }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid #b6d2ff;
+      outline-offset: 2px;
+    }
+
+    .panel {
+      display: none;
+      margin-top: 20px;
+      padding: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .panel.active { display: block; }
+    h2 { margin: 0 0 5px; }
+    .hint { margin: 0 0 22px; font-size: .95rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-weight: 650; }
+
+    input, select {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: #111622;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    input[type="file"] { padding: 8px; }
+    input[type="file"]::file-selector-button {
+      margin-right: 10px;
+      padding: 7px 10px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .status {
+      min-height: 24px;
+      margin-top: 16px;
+      color: var(--success);
+    }
+
+    .notice {
+      margin-top: 24px;
+      padding: 13px 15px;
+      border-left: 3px solid var(--accent);
+      border-radius: 5px;
+      color: var(--muted);
+      background: #151b28;
+      font-size: .92rem;
+    }
+
+    @media (max-width: 650px) {
+      .shell { padding: 24px 14px 40px; }
+      .panel { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>WAD Tools</h1>
+      <p>Extract, view, convert, create, and edit Wii channel assets.</p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="WAD tools">
+      <button class="tab" role="tab" aria-selected="true" aria-controls="extractor">Extractor</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="viewer">Viewer</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="converter">Converter</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="creator">Creator</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="editor">Editor</button>
+    </nav>
+
+    <section class="panel active" id="extractor" role="tabpanel">
+      <h2>WAD Extractor</h2>
+      <p class="hint">Choose a WAD file or URL, or select a folder or ZIP archive.</p>
+      <form data-demo-form>
+        <div class="grid">
+          <div class="field">
+            <label for="extract-wad">WAD file</label>
+            <input id="extract-wad" type="file" accept=".wad">
+          </div>
+          <div class="field">
+            <label for="extract-url">WAD URL</label>
+            <input id="extract-url" type="url" placeholder="https://example.com/file.wad">
+          </div>
+          <div class="field">
+            <label for="extract-folder">Folder</label>
+            <input id="extract-folder" type="file" webkitdirectory multiple>
+          </div>
+          <div class="field">
+            <label for="extract-zip">ZIP archive</label>
+            <input id="extract-zip" type="file" accept=".zip,application/zip">
+          </div>
+          <div class="field full">
+            <label for="extract-output">Output</label>
+            <select id="extract-output">
+              <option>Extract files to folder</option>
+              <option>Compress extracted files to ZIP</option>
+              <option>Download as ZIP</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit">Extract WAD</button>
+        </div>
+        <div class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="panel" id="viewer" role="tabpanel">
+      <h2>WAD Viewer</h2>
+      <p class="hint">Select a WAD file or provide a URL, then choose a viewer.</p>
+      <form data-demo-form>
+        <div class="grid">
+          <div class="field">
+            <label for="view-wad">WAD file</label>
+            <input id="view-wad" type="file" accept=".wad">
+          </div>
+          <div class="field">
+            <label for="view-url">WAD URL</label>
+            <input id="view-url" type="url" placeholder="https://example.com/file.wad">
+          </div>
+          <div class="field full">
+            <label for="view-mode">View</label>
+            <select id="view-mode">
+              <option>WAD contents</option>
+              <option>System Menu</option>
+              <option>Wii Menu</option>
+              <option>Wii Channels</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit">Open Viewer</button>
+        </div>
+        <div class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="panel" id="converter" role="tabpanel">
+      <h2>WAD Converter</h2>
+      <p class="hint">Choose a conversion and provide the input file.</p>
+      <form data-demo-form>
+        <div class="grid">
+          <div class="field full">
+            <label for="conversion">Conversion</label>
+            <select id="conversion">
+              <option>WAD to ZIP</option>
+              <option>ZIP to WAD</option>
+              <option>WAD to RAR (Original)</option>
+              <option>WAD to RAR (Password)</option>
+              <option>WAD to PDF</option>
+              <option>WAD to HTML</option>
+              <option>HTML to WAD</option>
+              <option>PDF to WAD</option>
+              <option>WAD to PPTX (Wii Channel Presentation)</option>
+              <option>PPTX to WAD (Wii Channel Presentation to Wii Channel)</option>
+              <option>WAD to MP4 (Wii Channel Video MP4)</option>
+              <option>MP4 to WAD (Wii Channel Video MP4 to Wii Channel)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="convert-file">Input file</label>
+            <input id="convert-file" type="file">
+          </div>
+          <div class="field">
+            <label for="convert-name">Output filename</label>
+            <input id="convert-name" type="text" placeholder="FileName.MediaFile">
+          </div>
+          <div class="field full" id="password-field" hidden>
+            <label for="rar-password">RAR password</label>
+            <input id="rar-password" type="password" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit">Convert and Download</button>
+        </div>
+        <div class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="panel" id="creator" role="tabpanel">
+      <h2>WAD Creator</h2>
+      <p class="hint">Create a channel draft from image and audio assets.</p>
+      <form data-demo-form>
+        <div class="grid">
+          <div class="field">
+            <label for="create-image">Channel image</label>
+            <input id="create-image" type="file" accept="image/*,.gif">
+          </div>
+          <div class="field">
+            <label for="create-image-url">Image, GIF, or Giphy URL</label>
+            <input id="create-image-url" type="url" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="create-audio">Audio</label>
+            <input id="create-audio" type="file" accept="audio/*">
+          </div>
+          <div class="field">
+            <label for="create-audio-url">Audio URL</label>
+            <input id="create-audio-url" type="url" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="create-sound">Sound type</label>
+            <select id="create-sound">
+              <option>Banner SFX</option>
+              <option>Music</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="create-ratio">Image aspect ratio</label>
+            <select id="create-ratio"><option>16:9</option></select>
+          </div>
+          <div class="field">
+            <label for="create-ai">AI chat / assistant</label>
+            <select id="create-ai">
+              <option>Wii Channel Res or Assets</option>
+              <option>LogoRemakeFour Chat</option>
+              <option>ChatGPT</option>
+              <option>Google Gemini 2.0</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="create-name">Channel name</label>
+            <input id="create-name" type="text" placeholder="My Wii Channel">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit">Create and Download WAD</button>
+        </div>
+        <div class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="panel" id="editor" role="tabpanel">
+      <h2>WAD Editor</h2>
+      <p class="hint">Select a WAD and add replacement channel image or audio assets.</p>
+      <form data-demo-form>
+        <div class="grid">
+          <div class="field full">
+            <label for="edit-wad">WAD to edit</label>
+            <input id="edit-wad" type="file" accept=".wad">
+          </div>
+          <div class="field">
+            <label for="edit-image">Replacement image</label>
+            <input id="edit-image" type="file" accept="image/*,.gif">
+          </div>
+          <div class="field">
+            <label for="edit-image-url">Image, GIF, or Giphy URL</label>
+            <input id="edit-image-url" type="url" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="edit-audio">Replacement audio</label>
+            <input id="edit-audio" type="file" accept="audio/*">
+          </div>
+          <div class="field">
+            <label for="edit-audio-url">Audio URL</label>
+            <input id="edit-audio-url" type="url" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="edit-sound">Sound type</label>
+            <select id="edit-sound">
+              <option>Banner SFX</option>
+              <option>Music</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="edit-ratio">Image aspect ratio</label>
+            <select id="edit-ratio"><option>16:9</option></select>
+          </div>
+          <div class="field">
+            <label for="edit-ai">AI chat / assistant</label>
+            <select id="edit-ai">
+              <option>Wii Channel Res or Assets</option>
+              <option>LogoRemakeFour Chat</option>
+              <option>ChatGPT</option>
+              <option>Google Gemini 2.0</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit">Save and Download WAD</button>
+        </div>
+        <div class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <aside class="notice">
+      Frontend demo only: this page does not upload, parse, extract, convert, or generate WAD files.
+      Connect the forms to a trusted backend that validates inputs and handles authorized content.
+      AI provider integrations also require their own secure backend and API credentials.
+    </aside>
+  </main>
+
+  <script>
+    const tabs = [...document.querySelectorAll(".tab")];
+    const panels = [...document.querySelectorAll(".panel")];
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(item => item.setAttribute("aria-selected", String(item === tab)));
+        panels.forEach(panel => panel.classList.toggle("active", panel.id === tab.getAttribute("aria-controls")));
+      });
+    });
+
+    document.querySelectorAll("[data-demo-form]").forEach(form => {
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        form.querySelector(".status").textContent =
+          "Demo only — connect a backend to process files and create a download.";
+      });
+    });
+
+    const conversion = document.querySelector("#conversion");
+    const passwordField = document.querySelector("#password-field");
+
+    conversion.addEventListener("change", () => {
+      passwordField.hidden = conversion.value !== "WAD to RAR (Password)";
+    });
+  </script>
+</body>
+</html>
