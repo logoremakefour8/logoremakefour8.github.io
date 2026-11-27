@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-labelledby="title description">
+  <title id="title">Chocolate bar</title>
+  <desc id="description">An illustrated brown chocolate bar with four by three raised segments.</desc>
+
+  <rect width="600" height="400" fill="#F3E1C7"/>
+  <ellipse cx="300" cy="330" rx="220" ry="25" fill="#CBAF89" opacity=".45"/>
+
+  <g transform="translate(145 70)">
+    <!-- Bar base -->
+    <rect x="0" y="0" width="310" height="250" rx="22"
+          fill="#3A170B" stroke="#230B05" stroke-width="10"/>
+
+    <!-- Chocolate pieces -->
+    <g fill="#75401F" stroke="#451D0C" stroke-width="7">
+      <rect x="25" y="25" width="75" height="58" rx="10"/>
+      <rect x="118" y="25" width="75" height="58" rx="10"/>
+      <rect x="211" y="25" width="75" height="58" rx="10"/>
+
+      <rect x="25" y="96" width="75" height="58" rx="10"/>
+      <rect x="118" y="96" width="75" height="58" rx="10"/>
+      <rect x="211" y="96" width="75" height="58" rx="10"/>
+
+      <rect x="25" y="167" width="75" height="58" rx="10"/>
+      <rect x="118" y="167" width="75" height="58" rx="10"/>
+      <rect x="211" y="167" width="75" height="58" rx="10"/>
+    </g>
+
+    <!-- Highlights -->
+    <g fill="#A7683B" opacity=".65">
+      <rect x="35" y="35" width="55" height="8" rx="4"/>
+      <rect x="128" y="35" width="55" height="8" rx="4"/>
+      <rect x="221" y="35" width="55" height="8" rx="4"/>
+    </g>
+  </g>
+
+  <!-- Wrapper corner -->
+  <path d="M455 92 L520 92 L520 158 Z" fill="#D8A82E"/>
+  <circle cx="488" cy="125" r="12" fill="#B37A19"/>
+  <text x="488" y="130" text-anchor="middle"
+        font-family="Georgia, serif" font-size="13" font-weight="bold" fill="#FFF4C2">C</text>
+</svg>
